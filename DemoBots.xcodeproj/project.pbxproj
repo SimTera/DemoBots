@@ -6,10 +6,17 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		40CB85562F9E174E007CF994 /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 40CB85552F9E174E007CF994 /* LICENSE.txt */; };
+		40CB85582F9E1795007CF994 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 40CB85572F9E1795007CF994 /* README.md */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		40CB84882F9BC7E5007CF994 /* DemoBots.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DemoBots.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		40CB84992F9BC7E5007CF994 /* DemoBots.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DemoBots.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		40CB84A92F9BC7E5007CF994 /* DemoBots.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DemoBots.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		40CB85552F9E174E007CF994 /* LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
+		40CB85572F9E1795007CF994 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -57,6 +64,80 @@
 			);
 			target = 40CB84A82F9BC7E5007CF994 /* DemoBots macOS */;
 		};
+		40CB84DC2F9E01CC007CF994 /* Exceptions for "Resources" folder in "DemoBots tvOS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Assets/Beam.xcassets,
+				Assets/FlyingBot.xcassets,
+				Assets/GroundBot.xcassets,
+				Assets/Images.xcassets,
+				Assets/Level1.xcassets,
+				Assets/Level2.xcassets,
+				Assets/Level3.xcassets,
+				Assets/PlayerBot.xcassets,
+				Assets/Scenery.xcassets,
+				Scenes/Levels/EndScene/EndScene.sks,
+				Scenes/Levels/HomeScene/HomeScene.sks,
+				Scenes/Levels/Levels/Level1/Level1.sks,
+				Scenes/Levels/Levels/Level2/Level2.sks,
+				Scenes/Levels/Levels/Level3/Level3.sks,
+				"Scenes/Levels/LevelScene states/FailScene.sks",
+				"Scenes/Levels/LevelScene states/PauseScene.sks",
+				"Scenes/Levels/LevelScene states/SuccessScene.sks",
+				Scenes/Levels/ProgressScene/ProgressScene.sks,
+				Scenes/Shared/Beam/BeamLine.sks,
+				Scenes/Shared/ButtonFocusActions.sks,
+				Scenes/Shared/ReferenceActions.sks,
+				Scenes/Shared/ReferenceScene.sks,
+			);
+			target = 40CB84982F9BC7E5007CF994 /* DemoBots tvOS */;
+		};
+		40CB84DD2F9E01CC007CF994 /* Exceptions for "Resources" folder in "DemoBots macOS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Assets/Beam.xcassets,
+				Assets/FlyingBot.xcassets,
+				Assets/GroundBot.xcassets,
+				Assets/Images.xcassets,
+				Assets/Level1.xcassets,
+				Assets/Level2.xcassets,
+				Assets/Level3.xcassets,
+				Assets/PlayerBot.xcassets,
+				Assets/Scenery.xcassets,
+				Scenes/Levels/EndScene/EndScene.sks,
+				Scenes/Levels/HomeScene/HomeScene.sks,
+				Scenes/Levels/Levels/Level1/Level1.sks,
+				Scenes/Levels/Levels/Level2/Level2.sks,
+				Scenes/Levels/Levels/Level3/Level3.sks,
+				"Scenes/Levels/LevelScene states/FailScene.sks",
+				"Scenes/Levels/LevelScene states/PauseScene.sks",
+				"Scenes/Levels/LevelScene states/SuccessScene.sks",
+				Scenes/Levels/ProgressScene/ProgressScene.sks,
+				Scenes/Shared/Beam/BeamLine.sks,
+				Scenes/Shared/ButtonFocusActions.sks,
+				Scenes/Shared/ReferenceActions.sks,
+				Scenes/Shared/ReferenceScene.sks,
+			);
+			target = 40CB84A82F9BC7E5007CF994 /* DemoBots macOS */;
+		};
+		40CB854A2F9E0EC3007CF994 /* Exceptions for "Sources" folder in "DemoBots tvOS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Components/AnimationComponent.swift,
+				Components/OrientationComponent.swift,
+				Utilities/CompassDirection.swift,
+			);
+			target = 40CB84982F9BC7E5007CF994 /* DemoBots tvOS */;
+		};
+		40CB854B2F9E0EC3007CF994 /* Exceptions for "Sources" folder in "DemoBots macOS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Components/AnimationComponent.swift,
+				Components/OrientationComponent.swift,
+				Utilities/CompassDirection.swift,
+			);
+			target = 40CB84A82F9BC7E5007CF994 /* DemoBots macOS */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -93,11 +174,19 @@
 		};
 		40CB84CE2F9BC83E007CF994 /* Sources */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				40CB854A2F9E0EC3007CF994 /* Exceptions for "Sources" folder in "DemoBots tvOS" target */,
+				40CB854B2F9E0EC3007CF994 /* Exceptions for "Sources" folder in "DemoBots macOS" target */,
+			);
 			path = Sources;
 			sourceTree = "<group>";
 		};
 		40CB84CF2F9BC849007CF994 /* Resources */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				40CB84DC2F9E01CC007CF994 /* Exceptions for "Resources" folder in "DemoBots tvOS" target */,
+				40CB84DD2F9E01CC007CF994 /* Exceptions for "Resources" folder in "DemoBots macOS" target */,
+			);
 			path = Resources;
 			sourceTree = "<group>";
 		};
@@ -136,6 +225,8 @@
 		40CB847A2F9BC7E2007CF994 = {
 			isa = PBXGroup;
 			children = (
+				40CB85572F9E1795007CF994 /* README.md */,
+				40CB85552F9E174E007CF994 /* LICENSE.txt */,
 				40CB84D02F9BC859007CF994 /* Data */,
 				40CB84CF2F9BC849007CF994 /* Resources */,
 				40CB84CE2F9BC83E007CF994 /* Sources */,
@@ -236,6 +327,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
+				KnownAssetTags = (
+					Blue,
+					FlyingBot,
+					Green,
+					GroundBot,
+					Level1,
+					Level2,
+					Level3,
+				);
 				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
@@ -276,6 +376,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				40CB85582F9E1795007CF994 /* README.md in Resources */,
+				40CB85562F9E174E007CF994 /* LICENSE.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -349,7 +451,7 @@
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -383,7 +485,7 @@
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};

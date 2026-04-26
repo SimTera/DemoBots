@@ -26,15 +26,15 @@ enum CompassDirection: Int {
     
     /// The angle of rotation that the orientation represents.
     var zRotation: CGFloat {
-        // Calculate the number of radians between each direction.
-        let stepSize = CGFloat(M_PI * 2.0) / CGFloat(CompassDirection.allDirections.count)
+        // Calculate the number of radians between each direction. Change CGFloat(M_PI * 2.0) is deprecate
+        let stepSize = CGFloat.pi * 2.0 / CGFloat(CompassDirection.allDirections.count)
         
         return CGFloat(self.rawValue) * stepSize
     }
     
     /// Creates a new `FacingDirection` for a given `zRotation` in radians.
-    init(zRotation: CGFloat) {
-        let twoPi = M_PI * 2
+    init(zRotation: CGFloat) { // change let twoPi = M_PI * 2 is deprecate
+        let twoPi = Double.pi * 2
         
         // Normalize the node's rotation.
         let rotation = (Double(zRotation) + twoPi).truncatingRemainder(dividingBy: twoPi)
