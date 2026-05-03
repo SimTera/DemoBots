@@ -125,6 +125,8 @@
 			membershipExceptions = (
 				Components/AnimationComponent.swift,
 				Components/OrientationComponent.swift,
+				Components/RenderComponent.swift,
+				Components/ShadowComponent.swift,
 				Utilities/CompassDirection.swift,
 			);
 			target = 40CB84982F9BC7E5007CF994 /* DemoBots tvOS */;
@@ -134,6 +136,8 @@
 			membershipExceptions = (
 				Components/AnimationComponent.swift,
 				Components/OrientationComponent.swift,
+				Components/RenderComponent.swift,
+				Components/ShadowComponent.swift,
 				Utilities/CompassDirection.swift,
 			);
 			target = 40CB84A82F9BC7E5007CF994 /* DemoBots macOS */;

@@ -9,7 +9,7 @@
 import CoreGraphics
 
 /// The different directions that an animated character can be facing.
-enum CompassDirection: Int {
+enum CompassDirection: Int, Sendable {
     case east = 0, eastByNorthEast, northEast, northByNorthEast
     case north, northByNorthWest, northWest, westByNorthWest
     case west, westBySouthWest, southWest, southBySouthWest
