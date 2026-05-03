@@ -126,6 +126,7 @@
 				Components/AnimationComponent.swift,
 				Components/OrientationComponent.swift,
 				Components/RenderComponent.swift,
+				Components/RulesComponent.swift,
 				Components/ShadowComponent.swift,
 				Utilities/CompassDirection.swift,
 			);
@@ -137,6 +138,7 @@
 				Components/AnimationComponent.swift,
 				Components/OrientationComponent.swift,
 				Components/RenderComponent.swift,
+				Components/RulesComponent.swift,
 				Components/ShadowComponent.swift,
 				Utilities/CompassDirection.swift,
 			);
