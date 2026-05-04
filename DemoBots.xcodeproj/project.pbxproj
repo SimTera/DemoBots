@@ -124,6 +124,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Components/AnimationComponent.swift,
+				Components/InputComponent.swift,
 				Components/OrientationComponent.swift,
 				Components/RenderComponent.swift,
 				Components/RulesComponent.swift,
@@ -136,6 +137,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Components/AnimationComponent.swift,
+				Components/InputComponent.swift,
 				Components/OrientationComponent.swift,
 				Components/RenderComponent.swift,
 				Components/RulesComponent.swift,
