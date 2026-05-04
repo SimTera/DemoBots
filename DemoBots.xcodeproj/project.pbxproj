@@ -125,6 +125,7 @@
 			membershipExceptions = (
 				Components/AnimationComponent.swift,
 				Components/BeamComponent.swift,
+				Components/ChargeComponent.swift,
 				Components/InputComponent.swift,
 				Components/OrientationComponent.swift,
 				Components/RenderComponent.swift,
@@ -139,6 +140,7 @@
 			membershipExceptions = (
 				Components/AnimationComponent.swift,
 				Components/BeamComponent.swift,
+				Components/ChargeComponent.swift,
 				Components/InputComponent.swift,
 				Components/OrientationComponent.swift,
 				Components/RenderComponent.swift,
