@@ -130,9 +130,11 @@
 				Components/IntelligenceComponent.swift,
 				Components/MovementComponent.swift,
 				Components/OrientationComponent.swift,
+				Components/PhysicsComponent.swift,
 				Components/RenderComponent.swift,
 				Components/RulesComponent.swift,
 				Components/ShadowComponent.swift,
+				Physics/ColliderType.swift,
 				Utilities/CompassDirection.swift,
 			);
 			target = 40CB84982F9BC7E5007CF994 /* DemoBots tvOS */;
@@ -147,9 +149,11 @@
 				Components/IntelligenceComponent.swift,
 				Components/MovementComponent.swift,
 				Components/OrientationComponent.swift,
+				Components/PhysicsComponent.swift,
 				Components/RenderComponent.swift,
 				Components/RulesComponent.swift,
 				Components/ShadowComponent.swift,
+				Physics/ColliderType.swift,
 				Utilities/CompassDirection.swift,
 			);
 			target = 40CB84A82F9BC7E5007CF994 /* DemoBots macOS */;
