@@ -135,6 +135,7 @@
 				Components/RulesComponent.swift,
 				Components/ShadowComponent.swift,
 				Physics/ColliderType.swift,
+				States/BeamCoolingState.swift,
 				Utilities/CompassDirection.swift,
 			);
 			target = 40CB84982F9BC7E5007CF994 /* DemoBots tvOS */;
@@ -154,6 +155,7 @@
 				Components/RulesComponent.swift,
 				Components/ShadowComponent.swift,
 				Physics/ColliderType.swift,
+				States/BeamCoolingState.swift,
 				Utilities/CompassDirection.swift,
 			);
 			target = 40CB84A82F9BC7E5007CF994 /* DemoBots macOS */;
