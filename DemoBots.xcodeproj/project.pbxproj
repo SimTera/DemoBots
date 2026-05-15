@@ -123,6 +123,7 @@
 		40CB854A2F9E0EC3007CF994 /* Exceptions for "Sources" folder in "DemoBots tvOS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Behaviors/TaskBotBehavior.swift,
 				Components/AnimationComponent.swift,
 				Components/BeamComponent.swift,
 				Components/ChargeComponent.swift,
@@ -156,6 +157,7 @@
 		40CB854B2F9E0EC3007CF994 /* Exceptions for "Sources" folder in "DemoBots macOS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Behaviors/TaskBotBehavior.swift,
 				Components/AnimationComponent.swift,
 				Components/BeamComponent.swift,
 				Components/ChargeComponent.swift,
