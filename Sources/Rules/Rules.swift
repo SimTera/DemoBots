@@ -103,7 +103,7 @@ class PlayerBotMediumRule: FuzzyTaskBotRule {
     override func grade() -> Float {
         guard let distance = snapshot.playerBotTarget?.distance else { return 0.0 }
         let oneThird = snapshot.proximityFactor / 3
-        return 1 - (fabs(distance - oneThird) / oneThird)
+        return 1 - (abs(distance - oneThird) / oneThird)
     }
     
     // MARK: Initializers
@@ -150,7 +150,7 @@ class GoodTaskBotMediumRule: FuzzyTaskBotRule {
     override func grade() -> Float {
         guard let distance = snapshot.nearestGoodTaskBotTarget?.distance else { return 0.0 }
         let oneThird = snapshot.proximityFactor / 3
-        return 1 - (fabs(distance - oneThird) / oneThird)
+        return 1 - (abs(distance - oneThird) / oneThird)
     }
 
     // MARK: Initializers
