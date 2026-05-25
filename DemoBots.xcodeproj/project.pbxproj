@@ -135,6 +135,7 @@
 				Components/RenderComponent.swift,
 				Components/RulesComponent.swift,
 				Components/ShadowComponent.swift,
+				Controllers/KeyboardControlInputSource.swift,
 				Entities/FlyingBot.swift,
 				Entities/GroundBot.swift,
 				Entities/PlayerBot.swift,
@@ -144,8 +145,11 @@
 				Nodes/ButtonNode.swift,
 				Nodes/ChargeBar.swift,
 				Nodes/ThumbStickNode.swift,
+				Nodes/TouchControlInputNode.swift,
 				Physics/ColliderType.swift,
 				Protocols/ContactNotifiableType.swift,
+				Protocols/ControlInputSource.swift,
+				Protocols/ResourceLoadableType.swift,
 				Rules/FuzzyTaskBotRule.swift,
 				Rules/LevelStateSnapshot.swift,
 				Rules/Rules.swift,
@@ -165,6 +169,7 @@
 				States/TaskBotAgentControlledState.swift,
 				States/TaskBotZappedState.swift,
 				Utilities/CompassDirection.swift,
+				Utilities/Utilities.swift,
 			);
 			target = 40CB84982F9BC7E5007CF994 /* DemoBots tvOS */;
 		};
@@ -183,6 +188,7 @@
 				Components/RenderComponent.swift,
 				Components/RulesComponent.swift,
 				Components/ShadowComponent.swift,
+				Controllers/KeyboardControlInputSource.swift,
 				Entities/FlyingBot.swift,
 				Entities/GroundBot.swift,
 				Entities/PlayerBot.swift,
@@ -192,8 +198,11 @@
 				Nodes/ButtonNode.swift,
 				Nodes/ChargeBar.swift,
 				Nodes/ThumbStickNode.swift,
+				Nodes/TouchControlInputNode.swift,
 				Physics/ColliderType.swift,
 				Protocols/ContactNotifiableType.swift,
+				Protocols/ControlInputSource.swift,
+				Protocols/ResourceLoadableType.swift,
 				Rules/FuzzyTaskBotRule.swift,
 				Rules/LevelStateSnapshot.swift,
 				Rules/Rules.swift,
@@ -213,6 +222,7 @@
 				States/TaskBotAgentControlledState.swift,
 				States/TaskBotZappedState.swift,
 				Utilities/CompassDirection.swift,
+				Utilities/Utilities.swift,
 			);
 			target = 40CB84A82F9BC7E5007CF994 /* DemoBots macOS */;
 		};
