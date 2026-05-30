@@ -27,9 +27,9 @@ class LoadResourcesOperation: SceneOperation, ProgressReporting, @unchecked Send
     
     // MARK: NSOperation
     
-    override nonisolated func start() {
+    override  func start() {
         // If the operation is cancelled there's nothing to do.
-        Task { @MainActor in
+        
             guard !isCancelled else { return }
             
             if progress.isCancelled {
@@ -52,7 +52,7 @@ class LoadResourcesOperation: SceneOperation, ProgressReporting, @unchecked Send
                 // Mark the operation as complete once the resources are loaded.
                 self.finish()
             }
-        }
+        
     }
     
     func finish() {
