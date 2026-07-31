@@ -98,7 +98,7 @@ class TouchControlInputNode: SKSpriteNode, ThumbStickNodeDelegate, ControlInputS
                 delegate?.controlInputSource(self, didUpdateAngularDisplacement: displacement)
             }
             else {
-                delegate?.controlInputSource(self, didUpdateAngularDisplacement: float2())
+                delegate?.controlInputSource(self, didUpdateAngularDisplacement: SIMD2<Float>())
             }
         }
     }

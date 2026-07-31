@@ -24,54 +24,65 @@ class TaskBotZappedState: GKState {
     }
 
     // MARK: Initializers
+    @available(*, unavailable, message: "Use init(entity:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(entity:) instead.")
+    }
     
     required init(entity: TaskBot) {
         self.entity = entity
+        super.init()
     }
     
     // MARK: GKState Life Cycle
     
-    override func didEnter(from previousState: GKState?) {
+    nonisolated override func didEnter(from previousState: GKState?) {
         super.didEnter(from: previousState)
         
-        // Reset the elapsed time.
-        elapsedTime = 0.0
+        MainActor.assumeIsolated {
+            // Reset the elapsed time.
+            elapsedTime = 0.0
 
-        // Check if the `TaskBot` has a movement component. (`GroundBot`s do, `FlyingBot`s do not.)
-        if let movementComponent = entity.component(ofType: MovementComponent.self) {
-            // Clear any pending movement.
-            movementComponent.nextTranslation = nil
-            movementComponent.nextRotation = nil
+            // Check if the `TaskBot` has a movement component. (`GroundBot`s do, `FlyingBot`s do not.)
+            if let movementComponent = entity.component(ofType: MovementComponent.self) {
+                // Clear any pending movement.
+                movementComponent.nextTranslation = nil
+                movementComponent.nextRotation = nil
 
+            }
+                
+            // Request the "zapped" animation for this `TaskBot`.
+            animationComponent.requestedAnimationState = .zapped
         }
-            
-        // Request the "zapped" animation for this `TaskBot`.
-        animationComponent.requestedAnimationState = .zapped
     }
 
-    override func update(deltaTime seconds: TimeInterval) {
+    nonisolated override func update(deltaTime seconds: TimeInterval) {
         super.update(deltaTime: seconds)
         
-        elapsedTime += seconds
-        
-        /*
-            If the `TaskBot` has become "good" or has been in the current state long enough,
-            re-enter `TaskBotAgentControlledState`.
-        */
-        if entity.isGood || elapsedTime >= GameplayConfiguration.TaskBot.zappedStateDuration {
-            stateMachine?.enter(TaskBotAgentControlledState.self)
+        MainActor.assumeIsolated {
+            elapsedTime += seconds
+            
+            /*
+                If the `TaskBot` has become "good" or has been in the current state long enough,
+                re-enter `TaskBotAgentControlledState`.
+            */
+            if entity.isGood || elapsedTime >= GameplayConfiguration.TaskBot.zappedStateDuration {
+                stateMachine?.enter(TaskBotAgentControlledState.self)
+            }
         }
     }
     
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+    nonisolated override func isValidNextState(_ stateClass: AnyClass) -> Bool {
         switch stateClass {
             case is TaskBotZappedState.Type:
-                /*
-                    Reset the elapsed time the `taskBot` has been in `TaskBotZappedState`. This ensures
-                    there is a delay from when a `taskBot` stops being zapped to when it becomes
-                    agent controlled.
-                */
-                elapsedTime = 0.0
+            MainActor.assumeIsolated {
+                    /*
+                        Reset the elapsed time the `taskBot` has been in `TaskBotZappedState`. This ensures
+                        there is a delay from when a `taskBot` stops being zapped to when it becomes
+                        agent controlled.
+                    */
+                    elapsedTime = 0.0
+                }
                 return false
             
             case is TaskBotAgentControlledState.Type, is FlyingBotBlastState.Type:

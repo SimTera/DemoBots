@@ -14,9 +14,9 @@ import GameplayKit
 
     The `object` property of the notification will contain the `SceneLoader`.
 */
-extension NSNotification.Name {
-    public static let SceneLoaderDidCompleteNotification    = NSNotification.Name(rawValue: "SceneLoaderDidCompleteNotification")
-    public static let SceneLoaderDidFailNotification        = NSNotification.Name(rawValue: "SceneLoaderDidFailNotification")
+extension NSNotification.Name { //añadimos esta aprte de la extension a nonisolated
+    nonisolated public static let SceneLoaderDidCompleteNotification    = NSNotification.Name(rawValue: "SceneLoaderDidCompleteNotification")
+    nonisolated public static let SceneLoaderDidFailNotification        = NSNotification.Name(rawValue: "SceneLoaderDidFailNotification")
 }
 
 /// A class encapsulating the work necessary to load a scene and its resources based on a given `SceneMetadata` instance.
@@ -60,14 +60,17 @@ class SceneLoader {
     var progress: Progress? {
         didSet {
             guard let progress = progress else { return }
-
-            progress.cancellationHandler = { [unowned self] in
-                // Cleanup the `SceneLoader`'s state and assign an appropriate error.
-                self.requestedForPresentation = false
-                self.error = NSError(domain: NSCocoaErrorDomain, code: NSUserCancelledError, userInfo: nil)
-                
-                // Notify any interested objects that the download was not completed.
-                NotificationCenter.default.post(name: NSNotification.Name.SceneLoaderDidFailNotification, object: self)
+// Lo metemos en un task mainactor, y añadimos el guard let self dentro.
+            progress.cancellationHandler = { [weak self] in
+                Task { @MainActor in
+                    // Cleanup the `SceneLoader`'s state and assign an appropriate error.
+                    guard let self else { return }
+                    self.requestedForPresentation = false
+                    self.error = NSError(domain: NSCocoaErrorDomain, code: NSUserCancelledError, userInfo: nil)
+                    
+                    // Notify any interested objects that the download was not completed.
+                    NotificationCenter.default.post(name: NSNotification.Name.SceneLoaderDidFailNotification, object: self)
+                }
             }
         }
     }

@@ -28,4 +28,14 @@ class OrientationComponent: GKComponent {
             zRotation = newValue.zRotation
         }
     }
+
+    // MARK: Initializers
+
+    override nonisolated init() {
+        super.init()
+    }
+
+    required nonisolated init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }

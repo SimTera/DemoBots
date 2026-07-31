@@ -16,7 +16,7 @@ enum CompassDirection: Int, Sendable {
     case south, southBySouthEast, southEast, eastBySouthEast
     
     /// Convenience array of all available directions.
-    static let allDirections: [CompassDirection] =
+    nonisolated static let allDirections: [CompassDirection] =
         [
             .east, .eastByNorthEast, .northEast, .northByNorthEast,
             .north, .northByNorthWest, .northWest, .westByNorthWest,

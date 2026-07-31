@@ -28,10 +28,10 @@ class FlyingBot: TaskBot, ChargeComponentDelegate, ResourceLoadableType {
     static var shadowOffset = CGPoint(x: 0.0, y: -58.0)
 
     /// The animations to use when a `FlyingBot` is in its "good" state.
-    static var goodAnimations: [AnimationState: [CompassDirection: Animation]]?
+    nonisolated(unsafe) static var goodAnimations: [AnimationState: [CompassDirection: Animation]]?
 
     /// The animations to use when a `FlyingBot` is in its "bad" state.
-    static var badAnimations: [AnimationState: [CompassDirection: Animation]]?
+    nonisolated(unsafe) static var badAnimations: [AnimationState: [CompassDirection: Animation]]?
 
     // MARK: TaskBot Properties
     
@@ -107,7 +107,7 @@ class FlyingBot: TaskBot, ChargeComponentDelegate, ResourceLoadableType {
         beamTargetOffset = GameplayConfiguration.FlyingBot.beamTargetOffset
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required nonisolated init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
@@ -145,11 +145,11 @@ class FlyingBot: TaskBot, ChargeComponentDelegate, ResourceLoadableType {
     
     // MARK: ResourceLoadableType
     
-    static var resourcesNeedLoading: Bool {
+    nonisolated static var resourcesNeedLoading: Bool {
         return goodAnimations == nil || badAnimations == nil
     }
     
-    static func loadResources(withCompletionHandler completionHandler: @escaping () -> ()) {
+    nonisolated static func loadResources(withCompletionHandler completionHandler: @escaping () -> ()) {
         // Load `TaskBot`s shared assets.
         super.loadSharedAssets()
         
@@ -187,7 +187,7 @@ class FlyingBot: TaskBot, ChargeComponentDelegate, ResourceLoadableType {
         }
     }
     
-    static func purgeResources() {
+    nonisolated static func purgeResources() {
         goodAnimations = nil
         badAnimations = nil
     }

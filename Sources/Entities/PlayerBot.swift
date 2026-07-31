@@ -28,20 +28,20 @@ class PlayerBot: GKEntity, ChargeComponentDelegate, ResourceLoadableType {
     static var shadowOffset = CGPoint(x: 0.0, y: -40.0)
     
     /// The animations to use for a `PlayerBot`.
-    static var animations: [AnimationState: [CompassDirection: Animation]]?
+    nonisolated(unsafe) static var animations: [AnimationState: [CompassDirection: Animation]]?
 
     /// Textures used by `PlayerBotAppearState` to show a `PlayerBot` appearing in the scene.
-    static var appearTextures: [CompassDirection: SKTexture]?
+    nonisolated(unsafe) static var appearTextures: [CompassDirection: SKTexture]?
     
     /// Provides a "teleport" effect shader for when the `PlayerBot` first appears on a level.
-    static var teleportShader: SKShader!
+    nonisolated(unsafe) static var teleportShader: SKShader!
     
     // MARK: Properties
     
     var isPoweredDown = false
     
     /// The agent used when pathfinding to the `PlayerBot`.
-    let agent: GKAgent2D
+    nonisolated(unsafe) let agent: GKAgent2D
 
     /**
         A `PlayerBot` is only targetable when it is actively being controlled by a player or is taking damage.
@@ -70,70 +70,72 @@ class PlayerBot: GKEntity, ChargeComponentDelegate, ResourceLoadableType {
 
     // MARK: Initializers
     
-    override init() {
+    override nonisolated init() {
         agent = GKAgent2D()
         agent.radius = GameplayConfiguration.PlayerBot.agentRadius
         
         super.init()
-        
-        /*
-            Add the `RenderComponent` before creating the `IntelligenceComponent` states,
-            so that they have the render node available to them when first entered
-            (e.g. so that `PlayerBotAppearState` can add a shader to the render node).
-        */
-        let renderComponent = RenderComponent()
-        addComponent(renderComponent)
-        
-        let orientationComponent = OrientationComponent()
-        addComponent(orientationComponent)
 
-        let shadowComponent = ShadowComponent(texture: PlayerBot.shadowTexture, size: PlayerBot.shadowSize, offset: PlayerBot.shadowOffset)
-        addComponent(shadowComponent)
-        
-        let inputComponent = InputComponent()
-        addComponent(inputComponent)
+        MainActor.assumeIsolated {
+            /*
+                Add the `RenderComponent` before creating the `IntelligenceComponent` states,
+                so that they have the render node available to them when first entered
+                (e.g. so that `PlayerBotAppearState` can add a shader to the render node).
+            */
+            let renderComponent = RenderComponent()
+            addComponent(renderComponent)
 
-        // `PhysicsComponent` provides the `PlayerBot`'s physics body and collision masks.
-        let physicsComponent = PhysicsComponent(physicsBody: SKPhysicsBody(circleOfRadius: GameplayConfiguration.PlayerBot.physicsBodyRadius, center: GameplayConfiguration.PlayerBot.physicsBodyOffset), colliderType: .PlayerBot)
-        addComponent(physicsComponent)
+            let orientationComponent = OrientationComponent()
+            addComponent(orientationComponent)
 
-        // Connect the `PhysicsComponent` and the `RenderComponent`.
-        renderComponent.node.physicsBody = physicsComponent.physicsBody
-        
-        // `MovementComponent` manages the movement of a `PhysicalEntity` in 2D space, and chooses appropriate movement animations.
-        let movementComponent = MovementComponent()
-        addComponent(movementComponent)
-        
-        // `ChargeComponent` manages the `PlayerBot`'s charge (i.e. health).
-        let chargeComponent = ChargeComponent(charge: GameplayConfiguration.PlayerBot.initialCharge, maximumCharge: GameplayConfiguration.PlayerBot.maximumCharge, displaysChargeBar: true)
-        chargeComponent.delegate = self
-        addComponent(chargeComponent)
-        
-        // `AnimationComponent` tracks and vends the animations for different entity states and directions.
-        guard let animations = PlayerBot.animations else {
-            fatalError("Attempt to access PlayerBot.animations before they have been loaded.")
+            let shadowComponent = ShadowComponent(texture: PlayerBot.shadowTexture, size: PlayerBot.shadowSize, offset: PlayerBot.shadowOffset)
+            addComponent(shadowComponent)
+
+            let inputComponent = InputComponent()
+            addComponent(inputComponent)
+
+            // `PhysicsComponent` provides the `PlayerBot`'s physics body and collision masks.
+            let physicsComponent = PhysicsComponent(physicsBody: SKPhysicsBody(circleOfRadius: GameplayConfiguration.PlayerBot.physicsBodyRadius, center: GameplayConfiguration.PlayerBot.physicsBodyOffset), colliderType: .PlayerBot)
+            addComponent(physicsComponent)
+
+            // Connect the `PhysicsComponent` and the `RenderComponent`.
+            renderComponent.node.physicsBody = physicsComponent.physicsBody
+
+            // `MovementComponent` manages the movement of a `PhysicalEntity` in 2D space, and chooses appropriate movement animations.
+            let movementComponent = MovementComponent()
+            addComponent(movementComponent)
+
+            // `ChargeComponent` manages the `PlayerBot`'s charge (i.e. health).
+            let chargeComponent = ChargeComponent(charge: GameplayConfiguration.PlayerBot.initialCharge, maximumCharge: GameplayConfiguration.PlayerBot.maximumCharge, displaysChargeBar: true)
+            chargeComponent.delegate = self
+            addComponent(chargeComponent)
+
+            // `AnimationComponent` tracks and vends the animations for different entity states and directions.
+            guard let animations = PlayerBot.animations else {
+                fatalError("Attempt to access PlayerBot.animations before they have been loaded.")
+            }
+            let animationComponent = AnimationComponent(textureSize: PlayerBot.textureSize, animations: animations)
+            addComponent(animationComponent)
+
+            // Connect the `RenderComponent` and `ShadowComponent` to the `AnimationComponent`.
+            renderComponent.node.addChild(animationComponent.node)
+            animationComponent.shadowNode = shadowComponent.node
+
+            // `BeamComponent` implements the beam that a `PlayerBot` fires at "bad" `TaskBot`s.
+            let beamComponent = BeamComponent()
+            addComponent(beamComponent)
+
+            let intelligenceComponent = IntelligenceComponent(states: [
+                PlayerBotAppearState(entity: self),
+                PlayerBotPlayerControlledState(entity: self),
+                PlayerBotHitState(entity: self),
+                PlayerBotRechargingState(entity: self)
+            ])
+            addComponent(intelligenceComponent)
         }
-        let animationComponent = AnimationComponent(textureSize: PlayerBot.textureSize, animations: animations)
-        addComponent(animationComponent)
-        
-        // Connect the `RenderComponent` and `ShadowComponent` to the `AnimationComponent`.
-        renderComponent.node.addChild(animationComponent.node)
-        animationComponent.shadowNode = shadowComponent.node
-        
-        // `BeamComponent` implements the beam that a `PlayerBot` fires at "bad" `TaskBot`s.
-        let beamComponent = BeamComponent()
-        addComponent(beamComponent)
-        
-        let intelligenceComponent = IntelligenceComponent(states: [
-            PlayerBotAppearState(entity: self),
-            PlayerBotPlayerControlledState(entity: self),
-            PlayerBotHitState(entity: self),
-            PlayerBotRechargingState(entity: self)
-        ])
-        addComponent(intelligenceComponent)
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required nonisolated init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
@@ -153,11 +155,11 @@ class PlayerBot: GKEntity, ChargeComponentDelegate, ResourceLoadableType {
     
     // MARK: ResourceLoadableType
     
-    static var resourcesNeedLoading: Bool {
+    nonisolated static var resourcesNeedLoading: Bool {
         return appearTextures == nil || animations == nil
     }
     
-    static func loadResources(withCompletionHandler completionHandler: @escaping () -> ()) {
+    nonisolated static func loadResources(withCompletionHandler completionHandler: @escaping () -> ()) {
         loadMiscellaneousAssets()
         
         let playerBotAtlasNames = [
@@ -201,12 +203,12 @@ class PlayerBot: GKEntity, ChargeComponentDelegate, ResourceLoadableType {
         }
     }
     
-    static func purgeResources() {
+    nonisolated static func purgeResources() {
         appearTextures = nil
         animations = nil
     }
     
-    class func loadMiscellaneousAssets() {
+    nonisolated class func loadMiscellaneousAssets() {
         teleportShader = SKShader(fileNamed: "Teleport.fsh")
         teleportShader.addUniform(SKUniform(name: "u_duration", float: Float(GameplayConfiguration.PlayerBot.appearDuration)))
         

@@ -77,31 +77,44 @@ class BeamComponent: GKComponent {
 
     // MARK: Initializers
 
-    override init() {
+    override nonisolated init() {
+        self.beamNode = MainActor.assumeIsolated {
+            BeamNode()
+        }
         super.init()
         
-        stateMachine = GKStateMachine(states: [
-            BeamIdleState(beamComponent: self),
-            BeamFiringState(beamComponent: self),
-            BeamCoolingState(beamComponent: self)
-        ])
-        
-        stateMachine.enter(BeamIdleState.self)
+        MainActor.assumeIsolated {
+            stateMachine = GKStateMachine(states: [
+                BeamIdleState(beamComponent: self),
+                BeamFiringState(beamComponent: self),
+                BeamCoolingState(beamComponent: self)
+            ])
+            
+            stateMachine.enter(BeamIdleState.self)
+        }
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required nonisolated init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
     deinit {
-        // Remove the beam node from the scene.
-        beamNode.removeFromParent()
+        MainActor.assumeIsolated {
+            // Remove the beam node from the scene.
+            beamNode.removeFromParent()
+        }
+//        Si lo del assumed falla probare con el task en este caso
+//        let node = beamNode
+//        Task { @MainActor in node.removeFromParent() }
+        
     }
 
     // MARK: GKComponent Life Cycle
     
-    override func update(deltaTime seconds: TimeInterval) {
-        stateMachine.update(deltaTime: seconds)
+    nonisolated override func update(deltaTime seconds: TimeInterval) {
+        MainActor.assumeIsolated {
+            stateMachine.update(deltaTime: seconds)
+        }
     }
     
     // MARK: Convenience

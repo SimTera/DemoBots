@@ -7,8 +7,9 @@
 */
 
 import GameController
+import GameKit
 
-protocol GameInputDelegate: class {
+protocol GameInputDelegate: AnyObject {
     // Called whenever a control input source is updated.
     func gameInputDidUpdateControlInputSources(gameInput: GameInput)
 }
@@ -43,7 +44,7 @@ final class GameInput {
         // Return a non-optional array of `ControlInputSourceType`s.
         let sources: [ControlInputSourceType?] = [nativeControlInputSource, secondaryControlInputSource]
         
-        return sources.flatMap { return $0 as ControlInputSourceType? }
+        return sources.compactMap { return $0 as ControlInputSourceType? }
     }
 
     weak var delegate: GameInputDelegate? {

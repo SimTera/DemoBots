@@ -57,7 +57,7 @@ class LevelStateSnapshot {
             we work with the `Set` index values directly.
         */
         for sourceEntity in scene.entities {
-            let sourceIndex = scene.entities.index(of: sourceEntity)!
+            let sourceIndex = scene.entities.firstIndex(of: sourceEntity)!
 
             // Retrieve the `GKAgent` for the source entity.
             let sourceAgent = agentForEntity(entity: sourceEntity)

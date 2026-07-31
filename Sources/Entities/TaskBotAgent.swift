@@ -8,4 +8,12 @@
 
 import GameplayKit
 
-class TaskBotAgent: GKAgent2D {}
+class TaskBotAgent: GKAgent2D {
+    override nonisolated init() {
+        super.init()
+    }
+
+    required nonisolated init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+    }
+}

@@ -7,6 +7,7 @@
 */
 
 import ReplayKit
+import SpriteKit
 
 extension BaseScene: RPPreviewViewControllerDelegate, RPScreenRecorderDelegate {
     // MARK: Computed Properties
@@ -65,7 +66,7 @@ extension BaseScene: RPPreviewViewControllerDelegate, RPScreenRecorderDelegate {
         // Show an alert notifying the user that there was an issue with starting or stopping the recorder.
         let alertController = UIAlertController(title: "ReplayKit Error", message: message, preferredStyle: .alert)
         
-        let alertAction = UIAlertAction(title: "OK", style: UIAlertActionStyle.`default`) { _ in
+        let alertAction = UIAlertAction(title: "OK", style: UIAlertAction.Style.`default`) { _ in
             self.isPaused = false
         }
         alertController.addAction(alertAction)

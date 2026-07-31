@@ -24,41 +24,50 @@ class PlayerBotHitState: GKState {
     }
     
     // MARK: Initializers
+    @available(*, unavailable, message: "Use init(entity:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(entity:) instead.")
+    }
     
     required init(entity: PlayerBot) {
         self.entity = entity
+        super.init()
     }
     
     // MARK: GKState Life Cycle
     
-    override func didEnter(from previousState: GKState?) {
+    nonisolated override func didEnter(from previousState: GKState?) {
         super.didEnter(from: previousState)
         
-        // Reset the elapsed "hit" duration on entering this state.
-        elapsedTime = 0.0
-        
-        // Request the "hit" animation for this `PlayerBot`.
-        animationComponent.requestedAnimationState = .hit
+        MainActor.assumeIsolated {
+            // Reset the elapsed "hit" duration on entering this state.
+            elapsedTime = 0.0
+            
+            // Request the "hit" animation for this `PlayerBot`.
+            animationComponent.requestedAnimationState = .hit
+        }
     }
     
-    override func update(deltaTime seconds: TimeInterval) {
+    nonisolated override func update(deltaTime seconds: TimeInterval) {
         super.update(deltaTime: seconds)
         
-        // Update the amount of time the `PlayerBot` has been in the "hit" state.
-        elapsedTime += seconds
-        
-        // When the `PlayerBot` has been in this state for long enough, transition to the appropriate next state.
-        if elapsedTime >= GameplayConfiguration.PlayerBot.hitStateDuration {
-            if entity.isPoweredDown {
-                stateMachine?.enter(PlayerBotRechargingState.self)
-            }
-            else {
-                stateMachine?.enter(PlayerBotPlayerControlledState.self)
+        MainActor.assumeIsolated {
+            // Update the amount of time the `PlayerBot` has been in the "hit" state.
+            elapsedTime += seconds
+            
+            // When the `PlayerBot` has been in this state for long enough, transition to the appropriate next state.
+            if elapsedTime >= GameplayConfiguration.PlayerBot.hitStateDuration {
+                if entity.isPoweredDown {
+                    stateMachine?.enter(PlayerBotRechargingState.self)
+                }
+                else {
+                    stateMachine?.enter(PlayerBotPlayerControlledState.self)
+                }
             }
         }
     }
     
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+    nonisolated override func isValidNextState(_ stateClass: AnyClass) -> Bool {
         switch stateClass {
             case is PlayerBotPlayerControlledState.Type, is PlayerBotRechargingState.Type:
                 return true

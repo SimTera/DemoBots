@@ -14,24 +14,31 @@ class SceneLoaderDownloadFailedState: GKState {
     unowned let sceneLoader: SceneLoader
     
     // MARK: Initialization
+    @available(*, unavailable, message: "Use init(sceneLoader:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(sceneLoader:) instead.")
+    }
     
-    init(sceneLoader: SceneLoader) {
+    nonisolated init(sceneLoader: SceneLoader) {
         self.sceneLoader = sceneLoader
+        super.init()
     }
     
     // MARK: GKState Life Cycle
     
-    override func didEnter(from previousState: GKState?) {
+    nonisolated override func didEnter(from previousState: GKState?) {
         super.didEnter(from: previousState)
         
-        // Clear the `sceneLoader`'s progress.
-        sceneLoader.progress = nil
-
-        // Notify any interested objects that the download has failed.
-        NotificationCenter.default.post(name: NSNotification.Name.SceneLoaderDidFailNotification, object: sceneLoader)
+        MainActor.assumeIsolated {            
+            // Clear the `sceneLoader`'s progress.
+            sceneLoader.progress = nil
+            
+            // Notify any interested objects that the download has failed.
+            NotificationCenter.default.post(name: NSNotification.Name.SceneLoaderDidFailNotification, object: sceneLoader)
+        }
     }
     
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+    nonisolated override func isValidNextState(_ stateClass: AnyClass) -> Bool {
         return stateClass is SceneLoaderDownloadingResourcesState.Type
     }
 }

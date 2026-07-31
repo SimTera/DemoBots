@@ -14,14 +14,13 @@ extension CGPoint {
     // MARK: Initializers
     
     /// Initialize with a `float2` type.
-    init(_ point: float2) {
-        x = CGFloat(point.x)
-        y = CGFloat(point.y)
+    init(_ point: SIMD2<Float>) {
+        self.init(x: CGFloat(point.x), y: CGFloat(point.y))
     }
 }
 
 // Extend `float2` to add an initializer from a `CGPoint`.
-extension float2 {
+extension SIMD2<Float> {
     // MARK: Initialization
     
     /// Initialize with a `CGPoint` type.
@@ -34,17 +33,17 @@ extension float2 {
     Extend `float2` to declare conformance to the `Equatable` protocol.
     The conformance to the protocol is provided by the `==` operator function below.
 */
-extension float2: Equatable {}
+//extension SIMD2<Float>: Equatable {} // Esto se elimina pq en swift 6 ya es Equatable de serie
 
 /// An equality operator function to determine if two `float2`s are the same.
-public func ==(lhs: float2, rhs: float2) -> Bool {
-    return lhs.x == rhs.x && lhs.y == rhs.y
-}
+//public func ==(lhs: SIMD2<Float>, rhs: SIMD2<Float>) -> Bool { //Esta funcion ya viene tambien definida ahora en Swift6
+//    return lhs.x == rhs.x && lhs.y == rhs.y
+//}
 
 // Extend `float2` to provide a convenience method for working with pathfinding graphs.
-extension float2 {
+extension SIMD2<Float> {
     /// Calculates the nearest point to this point on a line from `pointA` to `pointB`.
-    func nearestPointOnLineSegment(lineSegment: (startPoint: float2, endPoint: float2)) -> float2 {
+    func nearestPointOnLineSegment(lineSegment: (startPoint: SIMD2<Float>, endPoint: SIMD2<Float>)) -> SIMD2<Float> {
         // A vector from this point to the line start.
         let vectorFromStartToLine = self - lineSegment.startPoint
         
@@ -61,7 +60,7 @@ extension float2 {
         let componentInSegment = projectionAlongSegment / lineLengthSquared
         
         // Clamps the component between [0 - 1].
-        let fractionOfComponent = max(0, min(1, componentInSegment))
+        let fractionOfComponent = Swift.max(0, Swift.min(1, componentInSegment))
         
         return lineSegment.startPoint + lineSegmentVector * fractionOfComponent
     }

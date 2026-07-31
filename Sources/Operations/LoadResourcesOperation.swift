@@ -29,26 +29,33 @@ class LoadResourcesOperation: SceneOperation, ProgressReporting, @unchecked Send
     
     override  func start() {
         // If the operation is cancelled there's nothing to do.
+        print("🚀 LoadResourcesOperation START:", loadableType)
         
-            guard !isCancelled else { return }
-            
+            guard !isCancelled else {
+                print("⚠️ LoadResourcesOperation CANCELLED BEFORE START:", loadableType)
+                finish()
+                return }
             if progress.isCancelled {
+                print("⚠️ LoadResourcesOperation PROGRESS CANCELLED:", loadableType)
                 // Ensure the operation is marked as `cancelled`.
                 cancel()
+                finish()
                 return
             }
             
             // Avoid reloading the resources if they are already available.
             guard loadableType.resourcesNeedLoading else {
+                print("✅ LoadResourcesOperation NO NEED TO LOAD:", loadableType)
                 finish()
                 return
             }
             
             // Mark the operation as executing.
             state = .executing
-            
+        print("📦 LoadResourcesOperation LOADING:", loadableType)
             // Begin loading the resources.
             loadableType.loadResources() { [unowned self] in
+                print("✅ LoadResourcesOperation FINISH:", self.loadableType)
                 // Mark the operation as complete once the resources are loaded.
                 self.finish()
             }
@@ -56,6 +63,7 @@ class LoadResourcesOperation: SceneOperation, ProgressReporting, @unchecked Send
     }
     
     func finish() {
+        print("✅ LoadResourcesOperation FINISH:", loadableType)
         progress.completedUnitCount = 1
         state = .finished
     }

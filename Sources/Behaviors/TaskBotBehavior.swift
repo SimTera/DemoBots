@@ -12,6 +12,10 @@ import GameplayKit
 /// Provides factory methods to create `TaskBot`-specific goals and behaviors.
 class TaskBotBehavior: GKBehavior {
     // MARK: Behavior factory methods
+    // Probando de crear el init en nonisolated: (pues parece que si)
+    override nonisolated init() {
+        super.init()
+    }
     
     /// Constructs a behavior to hunt a `TaskBot` or `PlayerBot` via a computed path.
     static func behaviorAndPathPoints(forAgent agent: GKAgent2D, huntingAgent target: GKAgent2D, pathRadius: Float, inScene scene: LevelScene) -> (behavior: GKBehavior, pathPoints: [CGPoint]) {
@@ -22,7 +26,7 @@ class TaskBotBehavior: GKBehavior {
         behavior.addAvoidObstaclesGoal(forScene: scene)
 
         // Find any nearby "bad" TaskBots to flock with.
-        let agentsToFlockWith: [GKAgent2D] = scene.entities.flatMap { entity in
+        let agentsToFlockWith: [GKAgent2D] = scene.entities.compactMap { entity in
             if let taskBot = entity as? TaskBot, !taskBot.isGood && taskBot.agent !== agent && taskBot.distanceToAgent(otherAgent: agent) <= GameplayConfiguration.Flocking.agentSearchDistanceForFlocking {
                 return taskBot.agent
             }
@@ -74,7 +78,7 @@ class TaskBotBehavior: GKBehavior {
         
         // Convert the patrol path to an array of `float2`s.
         
-        let pathVectorPoints = patrolPathPoints.map { vector_float2(Float($0.x), Float($0.y)) }
+        let pathVectorPoints = patrolPathPoints.map { SIMD2<Float>(Float($0.x), Float($0.y)) }
         
         // Create a cyclical (closed) `GKPath` from the provided path points with the requested path radius.
         // GKPath(points: &pathVectorPoints, radius: <#T##Float#>, cyclical: <#T##Bool#>)

@@ -9,7 +9,7 @@
 import Foundation
 
 /// Encapsulates the metadata about a scene in the game.
-struct SceneMetadata {
+nonisolated struct SceneMetadata { //añadido a nonisolated
     // MARK: Properties
     
     /// The base file name to use when loading the scene and related resources.
@@ -69,7 +69,7 @@ struct SceneMetadata {
                 The tags are also used to determine which enemies need their resources
                 to be preloaded for a `LevelScene`.
             */
-            loadableTypesForScene += tags.flatMap { tag in
+            loadableTypesForScene += tags.compactMap { tag in
                 switch tag {
                     case "GroundBot":
                         return GroundBot.self
@@ -106,9 +106,12 @@ struct SceneMetadata {
     Extend `SceneMetadata` to conform to the `Hashable` protocol so that it may be
     used as a dictionary key by `SceneManger`.
 */
-extension SceneMetadata: Hashable {
-    var hashValue: Int {
-        return fileName.hashValue
+extension SceneMetadata: Hashable { //esto se modifica
+//    var hashValue: Int {
+//    return fileName.hashValue
+//} ->
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(fileName)
     }
 }
 

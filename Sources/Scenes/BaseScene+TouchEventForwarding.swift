@@ -7,6 +7,7 @@
 */
 
 import UIKit
+import SpriteKit
 
 /*
     Extend `BaseScene` to forward events from the scene to a platform-specific

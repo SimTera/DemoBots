@@ -18,15 +18,17 @@ class LevelSceneFailState: LevelSceneOverlayState {
 
     // MARK: GKState Life Cycle
     
-    override func didEnter(from previousState: GKState?) {
+    nonisolated override func didEnter(from previousState: GKState?) {
         super.didEnter(from: previousState)
 
-        if let inputComponent = levelScene.playerBot.component(ofType: InputComponent.self) {
-            inputComponent.isEnabled = false
+        MainActor.assumeIsolated {
+            if let inputComponent = levelScene.playerBot.component(ofType: InputComponent.self) {
+                inputComponent.isEnabled = false
+            }
         }
     }
     
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+    nonisolated override func isValidNextState(_ stateClass: AnyClass) -> Bool {
         return false
     }
 }

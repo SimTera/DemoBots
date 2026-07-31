@@ -50,6 +50,16 @@ class InputComponent: GKComponent, ControlInputSourceDelegate {
         }
     }
     
+    // MARK: Initializers
+
+    override nonisolated init() {
+        super.init()
+    }
+
+    required nonisolated init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     // MARK: ControlInputSourceDelegate
     
     func controlInputSource(_ controlInputSource: ControlInputSourceType, didUpdateDisplacement displacement: SIMD2<Float>) {

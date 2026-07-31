@@ -9,13 +9,13 @@
 import Foundation
 import CoreGraphics
 
-struct GameplayConfiguration {
+nonisolated struct GameplayConfiguration {
     struct Beam {
         /// The distance (in points) over which the beam can be fired.
         static let arcLength: CGFloat = 300.0
         
         /// The arc angle (in radians) within which the beam is effective.
-        static let arcAngle = CGFloat(45.0 * (M_PI / 180.0))
+        static let arcAngle = CGFloat(45.0 * (Double.pi / 180.0))
         
         /// The maximum arc angle (in radians) after being adjusted for distance from target.
         static let maxArcAngle = CGFloat(0.35)
@@ -35,10 +35,10 @@ struct GameplayConfiguration {
         static let movementSpeed: CGFloat = 210.0
 
         /// The angular rotation speed (in radians per second) for the `PlayerBot`.
-        static let angularSpeed = CGFloat(M_PI) * 1.4
+        static let angularSpeed = CGFloat(Double.pi) * 1.4
         
         /// The radius of the `PlayerBot`'s physics body.
-        static var physicsBodyRadius: CGFloat = 30.0
+        static let physicsBodyRadius: CGFloat = 30.0
         
         /// The offset of the `PlayerBot`'s physics body's center from the `PlayerBot`'s center.
         static let physicsBodyOffset = CGPoint(x: 0.0, y: -25.0)
@@ -106,7 +106,7 @@ struct GameplayConfiguration {
         static let agentMass: Float = 0.25
         
         /// The radius of the `TaskBot`'s physics body.
-        static var physicsBodyRadius: CGFloat = 35.0
+        static let physicsBodyRadius: CGFloat = 35.0
 
         /// The offset of the `TaskBot` physics body's center from the `TaskBot`'s center.
         static let physicsBodyOffset = CGPoint(x: 0.0, y: -25.0)
@@ -179,7 +179,7 @@ struct GameplayConfiguration {
         static let attackEndProximity: Float = 7.0
         
         /// How fast the `GroundBot` rotates to face its target in radians per second.
-        static let preAttackRotationSpeed = M_PI_4
+        static let preAttackRotationSpeed = Double.pi/4
         
         /// How much faster the `GroundBot` can move when attacking.
         static let movementSpeedMultiplierWhenAttacking: CGFloat = 2.5
@@ -197,15 +197,15 @@ struct GameplayConfiguration {
     struct Flocking {
         /// Separation, alignment, and cohesion parameters for multiple `TaskBot`s.
         static let separationRadius: Float = 25.3
-        static let separationAngle = Float (3 * M_PI_4)
+        static let separationAngle = Float (3 * Double.pi/4)
         static let separationWeight: Float = 2.0
         
         static let alignmentRadius: Float = 43.333
-        static let alignmentAngle = Float(M_PI_4)
+        static let alignmentAngle = Float(Double.pi/4)
         static let alignmentWeight: Float = 1.667
         
         static let cohesionRadius: Float = 50.0
-        static let cohesionAngle = Float(M_PI_2)
+        static let cohesionAngle = Float(Double.pi/2)
         static let cohesionWeight: Float = 1.667
         
         static let agentSearchDistanceForFlocking: Float = 50.0

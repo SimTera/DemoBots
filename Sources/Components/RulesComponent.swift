@@ -25,42 +25,44 @@ class RulesComponent: GKComponent {
     
     // MARK: Initializers
     
-    override init() {
-        ruleSystem = GKRuleSystem()
-        super.init()
+    @available(*, unavailable, message: "Use init(rules:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(rules:) instead.")
     }
-    
+
     init(rules: [GKRule]) {
         ruleSystem = GKRuleSystem()
         ruleSystem.add(rules)
         super.init()
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required nonisolated init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
     // MARK: GKComponent Life Cycle
     
-    override func update(deltaTime seconds: TimeInterval) {
-        timeSinceRulesUpdate += seconds
-        
-        if timeSinceRulesUpdate < GameplayConfiguration.TaskBot.rulesUpdateWaitDuration { return }
-        
-        timeSinceRulesUpdate = 0.0
-        
-        if let taskBot = entity as? TaskBot,
-            let level = taskBot.component(ofType: RenderComponent.self)?.node.scene as? LevelScene,
-            let entitySnapshot = level.entitySnapshotForEntity(entity: taskBot),
-            !taskBot.isGood {
+    nonisolated override func update(deltaTime seconds: TimeInterval) {
+        MainActor.assumeIsolated {
+            timeSinceRulesUpdate += seconds
 
-            ruleSystem.reset()
-            
-            ruleSystem.state["snapshot"] = entitySnapshot
-        
-            ruleSystem.evaluate()
-            
-            delegate?.rulesComponent(rulesComponent: self, didFinishEvaluatingRuleSystem: ruleSystem)
+            if timeSinceRulesUpdate < GameplayConfiguration.TaskBot.rulesUpdateWaitDuration { return }
+
+            timeSinceRulesUpdate = 0.0
+
+            if let taskBot = entity as? TaskBot,
+                let level = taskBot.component(ofType: RenderComponent.self)?.node.scene as? LevelScene,
+                let entitySnapshot = level.entitySnapshotForEntity(entity: taskBot),
+                !taskBot.isGood {
+
+                ruleSystem.reset()
+
+                ruleSystem.state["snapshot"] = entitySnapshot
+
+                ruleSystem.evaluate()
+
+                delegate?.rulesComponent(rulesComponent: self, didFinishEvaluatingRuleSystem: ruleSystem)
+            }
         }
     }
 }

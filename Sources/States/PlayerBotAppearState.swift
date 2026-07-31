@@ -45,72 +45,83 @@ class PlayerBotAppearState: GKState {
     var node = SKSpriteNode()
     
     // MARK: Initializers
+    @available(*, unavailable, message: "Use init(entity:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(entity:) instead.")
+    }
     
     required init(entity: PlayerBot) {
         self.entity = entity
+        super.init()
     }
     
     // MARK: GKState Life Cycle
     
-    override func didEnter(from previousState: GKState?) {
+    nonisolated override func didEnter(from previousState: GKState?) {
         super.didEnter(from: previousState)
         
-        // Reset the elapsed time.
-        elapsedTime = 0.0
-        
-        /*
-            The `PlayerBot` is about to appear in the level. We use an `SKShader` to
-            provide a "teleport" effect to beam in the `PlayerBot`.
-        */
-        
-        // Retrieve and use an initial texture for the `PlayerBot`, taken from the appropriate idle animation.
-        guard let appearTextures = PlayerBot.appearTextures else {
-            fatalError("Attempt to access PlayerBot.appearTextures before they have been loaded.")
+        MainActor.assumeIsolated {
+            // Reset the elapsed time.
+            elapsedTime = 0.0
+            
+            /*
+                The `PlayerBot` is about to appear in the level. We use an `SKShader` to
+                provide a "teleport" effect to beam in the `PlayerBot`.
+            */
+            
+            // Retrieve and use an initial texture for the `PlayerBot`, taken from the appropriate idle animation.
+            guard let appearTextures = PlayerBot.appearTextures else {
+                fatalError("Attempt to access PlayerBot.appearTextures before they have been loaded.")
+            }
+            let texture = appearTextures[orientationComponent.compassDirection]!
+            node.texture = texture
+            node.size = PlayerBot.textureSize
+
+            // Add an `SKShader` to the node to render the "teleport" effect.
+            node.shader = PlayerBot.teleportShader
+            
+            // Add the node to the `PlayerBot`'s render node.
+            renderComponent.node.addChild(node)
+            
+            // Hide the animation component node until the `PlayerBot` exits this state.
+            animationComponent.node.isHidden = true
+
+            // Disable the input component while the `PlayerBot` appears.
+            inputComponent.isEnabled = false
         }
-        let texture = appearTextures[orientationComponent.compassDirection]!
-        node.texture = texture
-        node.size = PlayerBot.textureSize
-
-        // Add an `SKShader` to the node to render the "teleport" effect.
-        node.shader = PlayerBot.teleportShader
-        
-        // Add the node to the `PlayerBot`'s render node.
-        renderComponent.node.addChild(node)
-        
-        // Hide the animation component node until the `PlayerBot` exits this state.
-        animationComponent.node.isHidden = true
-
-        // Disable the input component while the `PlayerBot` appears.
-        inputComponent.isEnabled = false
     }
     
-    override func update(deltaTime seconds: TimeInterval) {
+    nonisolated override func update(deltaTime seconds: TimeInterval) {
         super.update(deltaTime: seconds)
         
-        // Update the amount of time that the `PlayerBot` has been teleporting in to the level.
-        elapsedTime += seconds
+        MainActor.assumeIsolated {
+            // Update the amount of time that the `PlayerBot` has been teleporting in to the level.
+            elapsedTime += seconds
 
-        // Check if we have spent enough time
-        if elapsedTime > GameplayConfiguration.PlayerBot.appearDuration {
-            // Remove the node from the scene
-            node.removeFromParent()
-            
-            // Switch the `PlayerBot` over to a "player controlled" state.
-            stateMachine?.enter(PlayerBotPlayerControlledState.self)
+            // Check if we have spent enough time
+            if elapsedTime > GameplayConfiguration.PlayerBot.appearDuration {
+                // Remove the node from the scene
+                node.removeFromParent()
+                
+                // Switch the `PlayerBot` over to a "player controlled" state.
+                stateMachine?.enter(PlayerBotPlayerControlledState.self)
+            }
         }
     }
     
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+    nonisolated override func isValidNextState(_ stateClass: AnyClass) -> Bool {
         return stateClass is PlayerBotPlayerControlledState.Type
     }
     
-    override func willExit(to nextState: GKState) {
+    nonisolated override func willExit(to nextState: GKState) {
         super.willExit(to: nextState)
         
-        // Un-hide the animation component node.
-        animationComponent.node.isHidden = false
-        
-        // Re-enable the input component
-        inputComponent.isEnabled = true
+        MainActor.assumeIsolated {
+            // Un-hide the animation component node.
+            animationComponent.node.isHidden = false
+            
+            // Re-enable the input component
+            inputComponent.isEnabled = true
+        }
     }
 }

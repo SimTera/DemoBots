@@ -75,7 +75,7 @@ class TaskBot: GKEntity, ContactNotifiableType, GKAgentDelegate, RulesComponentD
                     This may be overridden by a `.HuntAgent` mandate when the `TaskBot`'s rules are next evaluated.
                 */
                 let closestPointOnBadPath = closestPointOnPath(path: badPathPoints)
-                mandate = .returnToPositionOnPath(float2(closestPointOnBadPath))
+                mandate = .returnToPositionOnPath(SIMD2<Float>(closestPointOnBadPath))
                 
                 // Update the animation component to use the "bad" animations.
                 animationComponent.animations = badAnimations
@@ -174,6 +174,11 @@ class TaskBot: GKEntity, ContactNotifiableType, GKAgentDelegate, RulesComponentD
     
     // MARK: Initializers
     
+    @available(*, unavailable, message: "Use init(isGood:goodPathPoints:badPathPoints:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(isGood:goodPathPoints:badPathPoints:) instead.")
+    }
+
     required init(isGood: Bool, goodPathPoints: [CGPoint], badPathPoints: [CGPoint]) {
         // Whether or not the `TaskBot` is "good" when first created.
         self.isGood = isGood
@@ -225,7 +230,7 @@ class TaskBot: GKEntity, ContactNotifiableType, GKAgentDelegate, RulesComponentD
         rulesComponent.delegate = self
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required nonisolated init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
@@ -407,7 +412,7 @@ class TaskBot: GKEntity, ContactNotifiableType, GKAgentDelegate, RulesComponentD
                 default:
                     // Send the `TaskBot` to the closest point on its "bad" patrol path.
                     let closestPointOnBadPath = closestPointOnPath(path: badPathPoints)
-                    mandate = .returnToPositionOnPath(float2(closestPointOnBadPath))
+                    mandate = .returnToPositionOnPath(SIMD2<Float>(closestPointOnBadPath))
             }
         }
     }
@@ -439,7 +444,7 @@ class TaskBot: GKEntity, ContactNotifiableType, GKAgentDelegate, RulesComponentD
         // Find the closest point to the `TaskBot`.
         let taskBotPosition = agent.position
         let closestPoint = path.min {
-            return distance_squared(taskBotPosition, float2($0)) < distance_squared(taskBotPosition, float2($1))
+            return distance_squared(taskBotPosition, SIMD2<Float>($0)) < distance_squared(taskBotPosition, SIMD2<Float>($1))
         }
     
         return closestPoint!
@@ -451,7 +456,7 @@ class TaskBot: GKEntity, ContactNotifiableType, GKAgentDelegate, RulesComponentD
         let renderComponent = self.renderComponent
         
         let agentOffset = GameplayConfiguration.TaskBot.agentOffset
-        agent.position = float2(x: Float(renderComponent.node.position.x + agentOffset.x), y: Float(renderComponent.node.position.y + agentOffset.y))
+        agent.position = SIMD2<Float>(x: Float(renderComponent.node.position.x + agentOffset.x), y: Float(renderComponent.node.position.y + agentOffset.y))
     }
     
     /// Sets the `TaskBot` `GKAgent` rotation to match the `TaskBot`'s orientation.
@@ -516,7 +521,7 @@ class TaskBot: GKEntity, ContactNotifiableType, GKAgentDelegate, RulesComponentD
     
     // MARK: Shared Assets
     
-    class func loadSharedAssets() {
+    nonisolated class func loadSharedAssets() {
         ColliderType.definedCollisions[.TaskBot] = [
             .Obstacle,
             .PlayerBot,

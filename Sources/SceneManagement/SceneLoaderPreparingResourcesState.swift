@@ -28,15 +28,22 @@ class SceneLoaderPreparingResourcesState: GKState {
                 Setup the progress object's cancellation handler to cancel any pending operations and update
                 the state machine to the appropriate state.
             */
-            progress.cancellationHandler = { [unowned self] in
-                self.cancel()
+            progress.cancellationHandler = { [weak self] in
+                Task { @MainActor in
+                    self?.cancel()
+                }
             }
         }
     }
 
     // MARK: Initialization
     
-    init(sceneLoader: SceneLoader) {
+    @available(*, unavailable, message: "Use init(sceneLoader:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(sceneLoader:) instead.")
+    }
+    
+    nonisolated init(sceneLoader: SceneLoader) {
         self.sceneLoader = sceneLoader
         
         // Set the name of the operation queue to identify the queue at run time.
@@ -48,28 +55,34 @@ class SceneLoaderPreparingResourcesState: GKState {
             fact that this is an important task, but is not blocking the user.
         */
         operationQueue.qualityOfService = .utility
+        super.init()
     }
     
     // MARK: GKState Life Cycle
     
-    override func didEnter(from previousState: GKState?) {
+    nonisolated override func didEnter(from previousState: GKState?) {
         super.didEnter(from: previousState)
         
-        // Begin loading the scene and associated resources in the background.
-        loadResourcesAsynchronously()
+        MainActor.assumeIsolated {
+            print("➡️ ENTER PreparingResourcesState")
+            // Begin loading the scene and associated resources in the background.
+            loadResourcesAsynchronously()
+        }
     }
     
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
-        switch stateClass {
-            // Only valid if the `sceneLoader`'s scene has been loaded.
-            case is SceneLoaderResourcesReadyState.Type where sceneLoader.scene != nil:
-                return true
-            
-            case is SceneLoaderResourcesAvailableState.Type:
-                return true
-            
-            default:
-                return false
+    nonisolated override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+        MainActor.assumeIsolated {
+            switch stateClass {
+                // Only valid if the `sceneLoader`'s scene has been loaded.
+                case is SceneLoaderResourcesReadyState.Type where sceneLoader.scene != nil:
+                    return true
+                
+                case is SceneLoaderResourcesAvailableState.Type:
+                    return true
+                
+                default:
+                    return false
+            }
         }
     }
     
@@ -86,11 +99,14 @@ class SceneLoaderPreparingResourcesState: GKState {
     private func loadResourcesAsynchronously() {
         let sceneMetadata = sceneLoader.sceneMetadata
         
+        print("🧱 loadResourcesAsynchronously")
+        print("🎬 scene:", sceneMetadata.fileName)
+            print("📦 loadableTypes count:", sceneMetadata.loadableTypes.count)
         /*
             Create an `NSProgress` object with the total unit count equal to the number of entities that
             need to be loaded plus a unit for loading the scene itself.
         */
-        let loadingProgress = Progress(totalUnitCount: sceneMetadata.loadableTypes.count + 1)
+        let loadingProgress = Progress(totalUnitCount: Int64(sceneMetadata.loadableTypes.count + 1))
         
         // Add the `SceneLoaderPreparingResourcesState`'s progress to the overall `sceneLoader`'s progress.
         sceneLoader.progress?.addChild(loadingProgress, withPendingUnitCount: 1)
@@ -103,9 +119,11 @@ class SceneLoaderPreparingResourcesState: GKState {
         let loadSceneOperation = LoadSceneOperation(sceneMetadata: sceneMetadata)
         loadingProgress.addChild(loadSceneOperation.progress, withPendingUnitCount: 1)
         
-        loadSceneOperation.completionBlock = { [unowned self] in
+        loadSceneOperation.completionBlock = { [weak self] in
+            let loadedScene = loadSceneOperation.scene
             // Enter the next state on the main queue.
-            DispatchQueue.main.async {
+            Task { @MainActor in
+                guard let self else { return }
                 self.sceneLoader.scene = loadSceneOperation.scene
                 
                 let didEnterReadyState = self.stateMachine!.enter(SceneLoaderResourcesReadyState.self)

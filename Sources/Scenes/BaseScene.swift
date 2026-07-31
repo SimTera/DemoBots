@@ -195,6 +195,39 @@ class BaseScene: SKScene, GameInputDelegate, ControlInputSourceGameStateDelegate
     }
     #endif
     
+    // MARK: ButtonNodeResponderType
+
+    /*
+        Declared in the main class body (not an extension) so that `LevelScene`
+        and `ProgressScene` can override it. Methods declared in an extension
+        cannot be overridden in Swift unless marked `@objc`.
+    */
+    func buttonTriggered(button: ButtonNode) {
+        switch button.buttonIdentifier! {
+            case .home:
+                sceneManager.transitionToScene(identifier: .home)
+            
+            case .proceedToNextScene:
+                sceneManager.transitionToScene(identifier: .nextLevel)
+            
+            case .replay:
+                sceneManager.transitionToScene(identifier: .currentLevel)
+            
+            case .screenRecorderToggle:
+                #if os(iOS)
+                toggleScreenRecording(button: button)
+                #endif
+            
+            case .viewRecordedContent:
+                #if os(iOS)
+                displayRecordedContent()
+                #endif
+
+            default:
+                fatalError("Unsupported ButtonNode type in Scene.")
+        }
+    }
+
     // MARK: Camera Actions
     
     /**
@@ -228,11 +261,24 @@ class BaseScene: SKScene, GameInputDelegate, ControlInputSourceGameStateDelegate
     /// Scales the scene's camera.
     func updateCameraScale() {
         /*
-            Because the game is normally playing in landscape, use the scene's current and
-            original heights to calculate the camera scale.
+            [MODIFICADO EN LA MIGRACIÓN] Encaje independiente del dispositivo.
+
+            El original solo escalaba por ALTURA (`nativeSize.height / size.height`),
+            pensado para landscape con una proporción fija. En pantallas más estrechas
+            o más anchas (iPhone normal vs Pro, iPad, etc.) eso recortaba los lados y
+            los botones quedaban fuera.
+
+            Ahora calculamos la escala por ambas dimensiones y usamos la MAYOR: eso es
+            "aspect fit" → toda el área de diseño (`nativeSize`) queda siempre visible,
+            con márgenes en el eje que sobre, en cualquier dispositivo.
+
+            Requiere `scaleMode = .resizeFill` (ver LoadSceneOperation) para que `size`
+            refleje el tamaño real de la vista.
         */
         if let camera = camera {
-            camera.setScale(nativeSize.height / size.height)
+            let widthScale = nativeSize.width / size.width
+            let heightScale = nativeSize.height / size.height
+            camera.setScale(max(widthScale, heightScale))
         }
     }
 }

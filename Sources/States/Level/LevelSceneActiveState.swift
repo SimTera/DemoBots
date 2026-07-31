@@ -37,50 +37,59 @@ class LevelSceneActiveState: GKState {
     }
     
     // MARK: Initializers
+    @available(*, unavailable, message: "Use init(levelScene:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(levelScene:) instead.")
+    }
     
     init(levelScene: LevelScene) {
         self.levelScene = levelScene
         
         timeRemaining = levelScene.levelConfiguration.timeLimit
+        super.init()
     }
     
     // MARK: GKState Life Cycle
     
-    override func didEnter(from previousState: GKState?) {
+    nonisolated override func didEnter(from previousState: GKState?) {
         super.didEnter(from: previousState)
-
-        levelScene.timerNode.text = timeRemainingString
+        MainActor.assumeIsolated {
+            
+            levelScene.timerNode.text = timeRemainingString
+        }
     }
     
-    override func update(deltaTime seconds: TimeInterval) {
+    nonisolated override func update(deltaTime seconds: TimeInterval) {
         super.update(deltaTime: seconds)
         
-        // Subtract the elapsed time from the remaining time.
-        timeRemaining -= seconds
-        
-        // Update the displayed time remaining.
-        levelScene.timerNode.text = timeRemainingString
-        
-        // Check if the `levelScene` contains any bad `TaskBot`s.
-        let allTaskBotsAreGood = !levelScene.entities.contains { entity in
-            if let taskBot = entity as? TaskBot {
-                return !taskBot.isGood
+        MainActor.assumeIsolated {
+            // Subtract the elapsed time from the remaining time.
+            timeRemaining -= seconds
+            
+            // Update the displayed time remaining.
+            levelScene.timerNode.text = timeRemainingString
+            
+            // Check if the `levelScene` contains any bad `TaskBot`s.
+            let allTaskBotsAreGood = !levelScene.entities.contains { entity in
+                if let taskBot = entity as? TaskBot {
+                    return !taskBot.isGood
+                }
+                
+                return false
             }
             
-            return false
-        }
-        
-        if allTaskBotsAreGood {
-            // If all the TaskBots are good, the player has completed the level.
-            stateMachine?.enter(LevelSceneSuccessState.self)
-        }
-        else if timeRemaining <= 0.0 {
-            // If there is no time remaining, the player has failed to complete the level.
-            stateMachine?.enter(LevelSceneFailState.self)
+            if allTaskBotsAreGood {
+                // If all the TaskBots are good, the player has completed the level.
+                stateMachine?.enter(LevelSceneSuccessState.self)
+            }
+            else if timeRemaining <= 0.0 {
+                // If there is no time remaining, the player has failed to complete the level.
+                stateMachine?.enter(LevelSceneFailState.self)
+            }
         }
     }
     
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+    nonisolated override func isValidNextState(_ stateClass: AnyClass) -> Bool {
         switch stateClass {
             case is LevelScenePauseState.Type, is LevelSceneFailState.Type, is LevelSceneSuccessState.Type:
                 return true

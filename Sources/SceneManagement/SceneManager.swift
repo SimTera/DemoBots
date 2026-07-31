@@ -7,8 +7,9 @@
 */
 
 import SpriteKit
+import GameplayKit
 
-protocol SceneManagerDelegate: class {
+protocol SceneManagerDelegate: AnyObject {
     // Called whenever a scene manager has transitioned to a new scene.
     func sceneManager(_ sceneManager: SceneManager, didTransitionTo scene: SKScene)
 }
@@ -49,7 +50,7 @@ final class SceneManager {
         
         // If there is no current scene, we can only transition back to the home scene.
         guard let currentSceneMetadata = currentSceneMetadata else { return homeScene }
-        let index = sceneConfigurationInfo.index(of: currentSceneMetadata)!
+        let index = sceneConfigurationInfo.firstIndex(of: currentSceneMetadata)!
         
         if index + 1 < sceneConfigurationInfo.count {
             // Return the metadata for the next scene in the array.
@@ -64,7 +65,7 @@ final class SceneManager {
     weak var delegate: SceneManagerDelegate?
     
     /// The scene that is currently being presented.
-    private (set) var currentSceneMetadata: SceneMetadata?
+    private(set) var currentSceneMetadata: SceneMetadata?
     
     /// The scene used to indicate progress when additional content needs to be loaded.
     private var progressScene: ProgressScene?
@@ -73,7 +74,8 @@ final class SceneManager {
     private let sceneConfigurationInfo: [SceneMetadata]
     
     /// An object to act as the observer for `SceneLoaderDidCompleteNotification`s.
-    private var loadingCompletedObserver: AnyObject?
+//    private var loadingCompletedObserver: AnyObject? //Esto tmb ->
+    private var loadingCompletedObserver: Task<Void, Never>?
     
     // MARK: Initialization
     
@@ -113,11 +115,12 @@ final class SceneManager {
         registerForNotifications()
     }
     
-    deinit {
+    deinit { //para el cambio necesito cambiar esto ->
         // Unregister for `SceneLoader` notifications if the observer is still around.
-        if let loadingCompletedObserver = loadingCompletedObserver {
-            NotificationCenter.default.removeObserver(loadingCompletedObserver, name: NSNotification.Name.SceneLoaderDidCompleteNotification, object: nil)
-        }
+//        if let loadingCompletedObserver = loadingCompletedObserver {
+//            NotificationCenter.default.removeObserver(loadingCompletedObserver, name: NSNotification.Name.SceneLoaderDidCompleteNotification, object: nil)
+//        }
+        loadingCompletedObserver?.cancel()
     }
     
     // MARK: Scene Transitioning
@@ -265,32 +268,60 @@ final class SceneManager {
 
     /// Register for notifications of `SceneLoader` download completion.
     func registerForNotifications() {
-        // Avoid reregistering for the notification.
-        guard loadingCompletedObserver == nil else { return }
         
-        loadingCompletedObserver = NotificationCenter.default.addObserver(forName: NSNotification.Name.SceneLoaderDidCompleteNotification, object: nil, queue: OperationQueue.main) { [unowned self] notification in
-            let sceneLoader = notification.object as! SceneLoader
+        // Avoid reregistering for the notification.
+        guard loadingCompletedObserver == nil else { return } //AQUI cambiaremos la API a la que llamamos, pasaremos a usar una mas moderna a ver como responde:
+        
+//        loadingCompletedObserver = NotificationCenter.default.addObserver(forName: NSNotification.Name.SceneLoaderDidCompleteNotification, object: nil, queue: OperationQueue.main) { [unowned self] notification in
+//            let sceneLoader = notification.object as! SceneLoader
+//            
+//            // Ensure this is a `sceneLoader` managed by this `SceneManager`.
+//            guard let managedSceneLoader = self.sceneLoaderForMetadata[sceneLoader.sceneMetadata], managedSceneLoader === sceneLoader else { return }
+//            
+//            guard sceneLoader.stateMachine.currentState is SceneLoaderResourcesReadyState else {
+//                fatalError("Received complete notification, but the `stateMachine`'s current state is not ready.")
+//            }
+//            
+//            /*
+//             If the `sceneLoader` associated with this state has been requested
+//             for presentation than we will present it here.
+//             
+//             This is used to present the `HomeScene` without any possibility of
+//             a progress scene.
+//             */
+//            if sceneLoader.requestedForPresentation {
+//                self.presentScene(for: sceneLoader)
+//            }
+//            
+//            // Reset the scene loader's presentation preference.
+//            sceneLoader.requestedForPresentation = false
+//        }
+        loadingCompletedObserver = Task { @MainActor [weak self] in
+            // Extraemos el SceneLoader (Sendable) dentro del stream para no cruzar
+            // un `Notification` no-Sendable hacia el MainActor.
+            let stream = NotificationCenter.default
+                .notifications(named: .SceneLoaderDidCompleteNotification)
+                .compactMap { notification in
+                    notification.object as? SceneLoader
+                }
             
-            // Ensure this is a `sceneLoader` managed by this `SceneManager`.
-            guard let managedSceneLoader = self.sceneLoaderForMetadata[sceneLoader.sceneMetadata], managedSceneLoader === sceneLoader else { return }
-            
-            guard sceneLoader.stateMachine.currentState is SceneLoaderResourcesReadyState else {
-                fatalError("Received complete notification, but the `stateMachine`'s current state is not ready.")
+            for await sceneLoader in stream {
+                guard let self else { break }
+                // Ensure this is a `sceneLoader` managed by this `SceneManager`.
+                guard let managedSceneLoader = self.sceneLoaderForMetadata[sceneLoader.sceneMetadata],
+                      managedSceneLoader === sceneLoader else { continue }
+                
+                guard sceneLoader.stateMachine.currentState is SceneLoaderResourcesReadyState else {
+                    fatalError("Received complete notification, but the `stateMachine`'s current state is not ready.")
+                }
+                
+                if sceneLoader.requestedForPresentation {
+                    self.presentScene(for: sceneLoader)
+                }
+                
+                // Reset the scene loader's presentation preference.
+                sceneLoader.requestedForPresentation = false
             }
-            
-            /*
-                If the `sceneLoader` associated with this state has been requested
-                for presentation than we will present it here. 
-            
-                This is used to present the `HomeScene` without any possibility of
-                a progress scene.
-            */
-            if sceneLoader.requestedForPresentation {
-                self.presentScene(for: sceneLoader)
-            }
-            
-            // Reset the scene loader's presentation preference.
-            sceneLoader.requestedForPresentation = false
         }
     }
     

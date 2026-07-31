@@ -8,7 +8,7 @@
 
 import GameplayKit
 
-class FuzzyTaskBotRule: GKRule {
+nonisolated class FuzzyTaskBotRule: GKRule {
     // MARK: Properties
     
     var snapshot: EntitySnapshot!

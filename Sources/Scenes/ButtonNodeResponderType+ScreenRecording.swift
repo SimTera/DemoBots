@@ -7,6 +7,7 @@
 */
 
 import ReplayKit
+import SpriteKit
 
 
 /// The `NSUserDefaults` key used to store whether screen recording has been enabled.

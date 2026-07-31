@@ -6,6 +6,8 @@
     An extension on `LevelScene` which ensures that game play is paused when the app enters the background for a number of user initiated events.
 */
 
+import SpriteKit
+import GameplayKit
 #if os(OSX)
 import AppKit
 #else
@@ -32,12 +34,12 @@ extension LevelScene {
     private var pauseNotificationNames: [NSNotification.Name] {
         #if os(OSX)
         return [
-           .NSApplicationWillResignActive,
-           .NSWindowDidMiniaturize
+            NSApplication.willResignActiveNotification,
+            NSWindow.didMiniaturizeNotification
         ]
         #else
         return [
-            NSNotification.Name.UIApplicationWillResignActive
+            UIApplication.willResignActiveNotification
         ]
         #endif
     }
@@ -54,7 +56,7 @@ extension LevelScene {
         }
     }
     
-    func pauseGame() {
+    @objc func pauseGame() {
         stateMachine.enter(LevelScenePauseState.self)
     }
     

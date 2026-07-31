@@ -48,6 +48,11 @@ class ChargeComponent: GKComponent {
 
     // MARK: Initializers
 
+    @available(*, unavailable, message: "Use init(charge:maximumCharge:displaysChargeBar:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(charge:maximumCharge:displaysChargeBar:) instead.")
+    }
+
     init(charge: Double, maximumCharge: Double, displaysChargeBar: Bool = false) {
         self.charge = charge
         self.maximumCharge = maximumCharge
@@ -65,7 +70,7 @@ class ChargeComponent: GKComponent {
         chargeBar?.level = percentageCharge
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required nonisolated init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 

@@ -7,6 +7,8 @@
                 with game controllers and the keyboard on OS X.
 */
 
+import SpriteKit
+
 extension BaseScene {
     // MARK: Properties
     
@@ -90,9 +92,9 @@ extension BaseScene {
 
         // Reset focus to the `buttonNode` with the maximum initial focus priority.
         focusedButton = currentlyFocusableButtons.max { lhsButton, rhsButton in
-            // The initial focus priority is the index within the `buttonIdentifiersOrderedByInitialFocusPriority` array.
-            let lhsPriority = buttonIdentifiersOrderedByInitialFocusPriority.index(of: lhsButton.buttonIdentifier)!
-            let rhsPriority = buttonIdentifiersOrderedByInitialFocusPriority.index(of: rhsButton.buttonIdentifier)!
+            // The initial focus priority is the index within the `buttonIdentifiersOrderedByInitialFocusPriority` array. Cambiado .index por firstIndex
+            let lhsPriority = buttonIdentifiersOrderedByInitialFocusPriority.firstIndex(of: lhsButton.buttonIdentifier)!
+            let rhsPriority = buttonIdentifiersOrderedByInitialFocusPriority.firstIndex(of: rhsButton.buttonIdentifier)!
             
             return lhsPriority > rhsPriority
         }

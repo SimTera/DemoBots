@@ -33,31 +33,40 @@ class PlayerBotPlayerControlledState: GKState {
     }
     
     // MARK: Initializers
+    @available(*, unavailable, message: "Use init(entity:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(entity:) instead.")
+    }
     
     required init(entity: PlayerBot) {
         self.entity = entity
+        super.init()
     }
     
     // MARK: GKState Life Cycle
     
-    override func didEnter(from previousState: GKState?) {
+    nonisolated override func didEnter(from previousState: GKState?) {
         super.didEnter(from: previousState)
         
-        // Turn on controller input for the `PlayerBot` when entering the player-controlled state.
-        inputComponent.isEnabled = true
+        MainActor.assumeIsolated {
+            // Turn on controller input for the `PlayerBot` when entering the player-controlled state.
+            inputComponent.isEnabled = true
+        }
     }
     
-    override func update(deltaTime seconds: TimeInterval) {
+    nonisolated override func update(deltaTime seconds: TimeInterval) {
         super.update(deltaTime: seconds)
         
-        /*
-            Assume an animation of "idle" that can then be overwritten by the movement
-            component in response to user input.
-        */
-        animationComponent.requestedAnimationState = .idle
+        MainActor.assumeIsolated {
+            /*
+                Assume an animation of "idle" that can then be overwritten by the movement
+                component in response to user input.
+            */
+            animationComponent.requestedAnimationState = .idle
+        }
     }
 
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+    nonisolated override func isValidNextState(_ stateClass: AnyClass) -> Bool {
         switch stateClass {
             case is PlayerBotHitState.Type, is PlayerBotRechargingState.Type:
                 return true
@@ -67,17 +76,19 @@ class PlayerBotPlayerControlledState: GKState {
         }
     }
     
-    override func willExit(to nextState: GKState) {
+    nonisolated override func willExit(to nextState: GKState) {
         super.willExit(to: nextState)
         
-        // Turn off controller input for the `PlayerBot` when leaving the player-controlled state.
-        entity.component(ofType: InputComponent.self)?.isEnabled = false
-        
-        // `movementComponent` is a computed property. Declare a local version so we don't compute it multiple times.
-        let movementComponent = self.movementComponent
+        MainActor.assumeIsolated {
+            // Turn off controller input for the `PlayerBot` when leaving the player-controlled state.
+            entity.component(ofType: InputComponent.self)?.isEnabled = false
+            
+            // `movementComponent` is a computed property. Declare a local version so we don't compute it multiple times.
+            let movementComponent = self.movementComponent
 
-        // Cancel any planned movement or rotation when leaving the player-controlled state.
-        movementComponent.nextTranslation = nil
-        movementComponent.nextRotation = nil
+            // Cancel any planned movement or rotation when leaving the player-controlled state.
+            movementComponent.nextTranslation = nil
+            movementComponent.nextRotation = nil
+        }
     }
 }

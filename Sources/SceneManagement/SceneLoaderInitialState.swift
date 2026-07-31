@@ -15,25 +15,33 @@ class SceneLoaderInitialState: GKState {
 
     // MARK: Initialization
     
-    init(sceneLoader: SceneLoader) {
+    @available(*, unavailable, message: "Use init(sceneLoader:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(sceneLoader:) instead.")
+    }
+    
+    nonisolated init(sceneLoader: SceneLoader) {
         self.sceneLoader = sceneLoader
+        super.init()
     }
     
     // MARK: GKState Life Cycle
     
-    override func didEnter(from previousState: GKState?) {
-        #if os(iOS) || os(tvOS)
-        // Move the `stateMachine` to the available state if no on-demand resources are required.
-        if !sceneLoader.sceneMetadata.requiresOnDemandResources {
-            stateMachine!.enter(SceneLoaderResourcesAvailableState.self)
+    nonisolated override func didEnter(from previousState: GKState?) {
+        MainActor.assumeIsolated {
+            #if os(iOS) || os(tvOS)
+            // Move the `stateMachine` to the available state if no on-demand resources are required.
+            if !sceneLoader.sceneMetadata.requiresOnDemandResources {
+                stateMachine!.enter(SceneLoaderResourcesAvailableState.self)
+            }
+            #elseif os(OSX)
+            // On OS X the resources will always be in local storage available for download.
+            _ = stateMachine!.enter(SceneLoaderResourcesAvailableState.self)
+            #endif
         }
-        #elseif os(OSX)
-        // On OS X the resources will always be in local storage available for download.
-        _ = stateMachine!.enter(SceneLoaderResourcesAvailableState.self)
-        #endif
     }
     
-    override func isValidNextState(_  stateClass: AnyClass) -> Bool {
+    nonisolated override func isValidNextState(_  stateClass: AnyClass) -> Bool {
         #if os(iOS) || os(tvOS)
         if stateClass is SceneLoaderDownloadingResourcesState.Type {
             return true

@@ -13,15 +13,26 @@ class RenderComponent: GKComponent {
     // MARK: Properties
     
     // The `RenderComponent` vends a node allowing an entity to be rendered in a scene.
-    let node = SKNode()
+    let node: SKNode
+
+    // MARK: Initializers
+
+    override nonisolated init() {
+        node = MainActor.assumeIsolated { SKNode() }
+        super.init()
+    }
+
+    required nonisolated init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     // MARK: GKComponent
     
-    override func didAddToEntity() {
+    nonisolated override func didAddToEntity() {
         node.entity = entity
     }
     
-    override func willRemoveFromEntity() {
+    nonisolated override func willRemoveFromEntity() {
         node.entity = nil
     }
 }

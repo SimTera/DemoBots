@@ -9,14 +9,14 @@
 import SpriteKit
 import GameplayKit
 
-struct ColliderType: OptionSet, Hashable, CustomDebugStringConvertible {
+nonisolated struct ColliderType: OptionSet, Hashable, CustomDebugStringConvertible {
     // MARK: Static properties
     
     /// A dictionary to specify which `ColliderType`s should be notified of contacts with other `ColliderType`s.
-    static var requestedContactNotifications = [ColliderType: [ColliderType]]()
+    nonisolated(unsafe) static var requestedContactNotifications = [ColliderType: [ColliderType]]()
     
     /// A dictionary of which `ColliderType`s should collide with other `ColliderType`s.
-    static var definedCollisions = [ColliderType: [ColliderType]]()
+    nonisolated(unsafe) static var definedCollisions = [ColliderType: [ColliderType]]()
 
     // MARK: Properties
     

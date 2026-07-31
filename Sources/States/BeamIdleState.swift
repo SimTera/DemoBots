@@ -16,22 +16,29 @@ class BeamIdleState: GKState {
     
     // MARK: Initializers
     
-    required init(beamComponent: BeamComponent) {
+    @available(*, unavailable, message: "Use init(beamComponent:) instead.") //Se añade esto aqui para que no busque el init por defecto
+        override nonisolated init() {
+            fatalError("init() must not be used. Use init(beamComponent:) instead.")
+        }
+    nonisolated required init(beamComponent: BeamComponent) {
         self.beamComponent = beamComponent
+        super.init()
     }
     
     // MARK: GKState life cycle
     
-    override func update(deltaTime seconds: TimeInterval) {
-        super.update(deltaTime: seconds)
-        
-        // If the beam has been triggered, enter `BeamFiringState`.
-        if beamComponent.isTriggered {
-            stateMachine?.enter(BeamFiringState.self)
+    nonisolated override func update(deltaTime seconds: TimeInterval) {
+        MainActor.assumeIsolated {
+            super.update(deltaTime: seconds)
+            
+            // If the beam has been triggered, enter `BeamFiringState`.
+            if beamComponent.isTriggered {
+                stateMachine?.enter(BeamFiringState.self)
+            }
         }
     }
     
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+    nonisolated override func isValidNextState(_ stateClass: AnyClass) -> Bool {
         return stateClass is BeamFiringState.Type
     }
 }

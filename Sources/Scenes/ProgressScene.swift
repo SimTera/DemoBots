@@ -12,7 +12,7 @@ import SpriteKit
     The KVO context for `ProgressScene` instances. This provides a stable
     address to use as the `context` parameter for the KVO observation methods.
 */
-private var progressSceneKVOContext = 0
+nonisolated(unsafe) private var progressSceneKVOContext = 0
 
 class ProgressScene: BaseScene {
     // MARK: Properties
@@ -90,15 +90,24 @@ class ProgressScene: BaseScene {
         }
         
         // Register for notifications posted when the `SceneDownloader` fails.
-        let defaultCenter = NotificationCenter.default
-        downloadFailedObserver = defaultCenter.addObserver(forName: NSNotification.Name.SceneLoaderDidFailNotification, object: sceneLoader, queue: OperationQueue.main) { [unowned self] notification in
-            guard let loader = notification.object as? SceneLoader, let error = loader.error else { fatalError("The scene loader has no error to show.") }
-            
-            self.showError(error as NSError)
-        }
+//        let defaultCenter = NotificationCenter.default
+//        downloadFailedObserver = defaultCenter.addObserver(forName: NSNotification.Name.SceneLoaderDidFailNotification, object: sceneLoader, queue: OperationQueue.main) { [unowned self] notification in
+//            guard let loader = notification.object as? SceneLoader, let error = loader.error else { fatalError("The scene loader has no error to show.") }
+//            
+//            self.showError(error as NSError)
+//        }
+        downloadFailedObserver = NotificationCenter.default.addObserver(forName: .SceneLoaderDidFailNotification, object: sceneLoader, queue: .main) { [weak self] _ in
+                    MainActor.assumeIsolated {
+                        guard let self else { return }
+                        guard let error = self.sceneLoader.error else {
+                            fatalError("The scene loader has no error to show.")
+                        }
+                        self.showError(error as NSError)
+                    }
+                }
     }
     
-    deinit {
+    isolated deinit {
         // Unregister as an observer of 'SceneLoaderDownloadFailedNotification' notifications.
         if let downloadFailedObserver = downloadFailedObserver {
             NotificationCenter.default.removeObserver(downloadFailedObserver, name: NSNotification.Name.SceneLoaderDidFailNotification, object: sceneLoader)
@@ -129,27 +138,46 @@ class ProgressScene: BaseScene {
     
     // MARK: Key Value Observing (KVO) for NSProgress
 
-    @nonobjc override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        // Check if this is the KVO notification we need.
-        
-        guard context == &progressSceneKVOContext else {
-            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
-            return
-        }
-        
-        if let changedProgress = object as? Progress, changedProgress == progress, keyPath == "fractionCompleted" {
-            // Update the progress UI on the main queue.
-            DispatchQueue.main.async {
-                guard let progress = self.progress else { return }
-        
-                // Update the progress bar to match the amount of progress completed.
-                self.progressBarNode.size.width = self.progressBarInitialWidth * CGFloat(progress.fractionCompleted)
-                
-                // Display a contextually specific progress description.
-                self.labelNode.text = progress.localizedDescription
+//    @nonobjc override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+//        // Check if this is the KVO notification we need.
+//        
+//        guard context == &progressSceneKVOContext else {
+//            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
+//            return
+//        }
+//        
+//        if let changedProgress = object as? Progress, changedProgress == progress, keyPath == "fractionCompleted" {
+//            // Update the progress UI on the main queue.
+//            DispatchQueue.main.async {
+//                guard let progress = self.progress else { return }
+//        
+//                // Update the progress bar to match the amount of progress completed.
+//                self.progressBarNode.size.width = self.progressBarInitialWidth * CGFloat(progress.fractionCompleted)
+//                
+//                // Display a contextually specific progress description.
+//                self.labelNode.text = progress.localizedDescription
+//            }
+//        }
+//    }
+    
+    nonisolated override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+            guard context == &progressSceneKVOContext else {
+                super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
+                return
+            }
+
+            guard keyPath == "fractionCompleted", let changedProgress = object as? Progress else { return }
+
+            let fraction = changedProgress.fractionCompleted
+            let description = changedProgress.localizedDescription
+            let changedID = ObjectIdentifier(changedProgress)
+
+            Task { @MainActor [weak self] in
+                guard let self, let progress = self.progress, ObjectIdentifier(progress) == changedID else { return }
+                self.progressBarNode.size.width = self.progressBarInitialWidth * CGFloat(fraction)
+                self.labelNode.text = description
             }
         }
-    }
     
     // MARK: ButtonNodeResponderType
     

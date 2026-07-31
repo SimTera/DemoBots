@@ -14,24 +14,32 @@ class SceneLoaderResourcesReadyState: GKState {
     unowned let sceneLoader: SceneLoader
     
     // MARK: Initialization
+    @available(*, unavailable, message: "Use init(sceneLoader:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(sceneLoader:) instead.")
+    }
     
-    init(sceneLoader: SceneLoader) {
+    nonisolated init(sceneLoader: SceneLoader) {
         self.sceneLoader = sceneLoader
+        super.init()
     }
     
     // MARK: GKState Life Cycle
     
-    override func didEnter(from previousState: GKState?) {
+    nonisolated override func didEnter(from previousState: GKState?) {
         super.didEnter(from: previousState)
         
-        // Clear the `sceneLoader`'s progress as loading is complete. 
-        sceneLoader.progress = nil
+        MainActor.assumeIsolated {
+            print("✅ ENTER ResourcesReadyState")
+            // Clear the `sceneLoader`'s progress as loading is complete.
+            sceneLoader.progress = nil
 
-        // Notify to any interested objects that the download has completed.
-        NotificationCenter.default.post(name: NSNotification.Name.SceneLoaderDidCompleteNotification, object: sceneLoader)
+            // Notify to any interested objects that the download has completed.
+            NotificationCenter.default.post(name: NSNotification.Name.SceneLoaderDidCompleteNotification, object: sceneLoader)
+        }
     }
     
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+    nonisolated override func isValidNextState(_ stateClass: AnyClass) -> Bool {
         switch stateClass {
             case is SceneLoaderResourcesAvailableState.Type, is SceneLoaderInitialState.Type:
                 return true
@@ -41,13 +49,15 @@ class SceneLoaderResourcesReadyState: GKState {
         }
     }
 
-    override func willExit(to nextState: GKState) {
+    nonisolated override func willExit(to nextState: GKState) {
         super.willExit(to: nextState)
         
-        /*
-            Presenting the scene is a one shot operation. Clear the scene when 
-            exiting the ready state.
-        */
-        sceneLoader.scene = nil
+        MainActor.assumeIsolated {
+            /*
+                Presenting the scene is a one shot operation. Clear the scene when
+                exiting the ready state.
+            */
+            sceneLoader.scene = nil
+        }
     }
 }

@@ -121,7 +121,7 @@ class LevelScene: BaseScene, SKPhysicsContactDelegate {
     
     // MARK: Initializers
     
-    deinit {
+    isolated deinit {
         unregisterForPauseNotifications()
     }
 
@@ -290,8 +290,8 @@ class LevelScene: BaseScene, SKPhysicsContactDelegate {
         
         // Sort the entities in the scene by ascending y-position.
         let ySortedEntities = entities.sorted {
-            let nodeA = $0.0.component(ofType: RenderComponent.self)!.node
-            let nodeB = $0.1.component(ofType: RenderComponent.self)!.node
+            let nodeA = $0.component(ofType: RenderComponent.self)!.node
+            let nodeB = $1.component(ofType: RenderComponent.self)!.node
             
             return nodeA.position.y > nodeB.position.y
         }

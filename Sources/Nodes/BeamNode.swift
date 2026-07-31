@@ -13,10 +13,10 @@ class BeamNode: SKNode, ResourceLoadableType {
     // MARK: Static properties
     
     struct AnimationActions {
-        static var source: SKAction!
-        static var untargetedSource: SKAction!
-        static var destination: SKAction!
-        static var cooling: SKAction!
+        nonisolated(unsafe) static var source: SKAction!
+        nonisolated(unsafe) static var untargetedSource: SKAction!
+        nonisolated(unsafe) static var destination: SKAction!
+        nonisolated(unsafe) static var cooling: SKAction!
     }
 
     /// The size to use for the `BeamNode`'s dot animation textures.
@@ -239,11 +239,11 @@ class BeamNode: SKNode, ResourceLoadableType {
     
     // MARK: ResourceLoadableType
     
-    static var resourcesNeedLoading: Bool {
+    nonisolated static var resourcesNeedLoading: Bool {
         return AnimationActions.source == nil || AnimationActions.untargetedSource == nil || AnimationActions.destination == nil || AnimationActions.cooling == nil
     }
     
-    static func loadResources(withCompletionHandler completionHandler: @escaping () -> ()) {
+    nonisolated static func loadResources(withCompletionHandler completionHandler: @escaping () -> ()) {
         let beamAtlasNames = [
             "BeamDot",
             "BeamCharging"
@@ -269,7 +269,7 @@ class BeamNode: SKNode, ResourceLoadableType {
         }
     }
     
-    static func purgeResources() {
+    nonisolated static func purgeResources() {
         AnimationActions.source = nil
         AnimationActions.destination = nil
         AnimationActions.untargetedSource = nil

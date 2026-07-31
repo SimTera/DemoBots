@@ -14,14 +14,20 @@ class SceneLoaderResourcesAvailableState: GKState {
     unowned let sceneLoader: SceneLoader
     
     // MARK: Initialization
+    @available(*, unavailable, message: "Use init(sceneLoader:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(sceneLoader:) instead.")
+    }
     
-    init(sceneLoader: SceneLoader) {
+    
+    nonisolated init(sceneLoader: SceneLoader) {
         self.sceneLoader = sceneLoader
+        super.init()
     }
     
     // MARK: GKState Life Cycle
     
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+    nonisolated override func isValidNextState(_ stateClass: AnyClass) -> Bool {
         switch stateClass {
             case is SceneLoaderInitialState.Type, is SceneLoaderPreparingResourcesState.Type:
                 return true

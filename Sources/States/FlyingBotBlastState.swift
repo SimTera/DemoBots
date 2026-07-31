@@ -39,73 +39,84 @@ class FlyingBotBlastState: GKState {
     }
 
     // MARK: Initializers
+    @available(*, unavailable, message: "Use init(entity:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(entity:) instead.")
+    }
     
+    // es un init propio con parámetros. Solo el override init() bloqueado tiene que ser nonisolated (para casar con la base). Por lo tanto no es necesario el overraid.
     required init(entity: TaskBot) {
         self.entity = entity
 
-        // Load and configure the "good" and "bad" template emitter nodes.
-        templateGoodEmitterNode = SKEmitterNode(fileNamed: "FlyingBotGoodAttackParticleEmitter")!
-        templateBadEmitterNode = SKEmitterNode(fileNamed: "FlyingBotBadAttackParticleEmitter")!
-        
-        /*
-            Use a zPosition of -25 (relative to the entity's render node) to make sure
-            that the blast emitter nodes' particles are behind this `FlyingBot`'s body texture.
-        */
-        templateGoodEmitterNode.zPosition = -25.0
-        templateBadEmitterNode.zPosition = -25.0
+            // Load and configure the "good" and "bad" template emitter nodes.
+            templateGoodEmitterNode = SKEmitterNode(fileNamed: "FlyingBotGoodAttackParticleEmitter")!
+            templateBadEmitterNode = SKEmitterNode(fileNamed: "FlyingBotBadAttackParticleEmitter")!
+            
+            /*
+                Use a zPosition of -25 (relative to the entity's render node) to make sure
+                that the blast emitter nodes' particles are behind this `FlyingBot`'s body texture.
+            */
+            templateGoodEmitterNode.zPosition = -25.0
+            templateBadEmitterNode.zPosition = -25.0
 
-        // Offset the emitter nodes to place them behind the correct part of the `FlyingBot`.
-        templateGoodEmitterNode.position = GameplayConfiguration.FlyingBot.blastEmitterOffset
-        templateBadEmitterNode.position = GameplayConfiguration.FlyingBot.blastEmitterOffset
+            // Offset the emitter nodes to place them behind the correct part of the `FlyingBot`.
+            templateGoodEmitterNode.position = GameplayConfiguration.FlyingBot.blastEmitterOffset
+            templateBadEmitterNode.position = GameplayConfiguration.FlyingBot.blastEmitterOffset
+
+        super.init()
     }
     
     // MARK: GKState Life Cycle
     
-    override func didEnter(from previousState: GKState?) {
+    nonisolated override func didEnter(from previousState: GKState?) {
         super.didEnter(from: previousState)
         
-        // Reset the "length of this blast" tracker when entering the "blast" state.
-        elapsedTime = 0.0
-        
-        /*
-            Add the "blast" node to the `FlyingBot`'s render node.
-            We make a copy of the template emitter node to ensure that the emitter
-            starts from a "zero" state with no existing particles.
-        */
-        if entity.isGood {
-            currentEmitterNode = templateGoodEmitterNode.copy() as? SKEmitterNode
-        }
-        else {
-            currentEmitterNode = templateBadEmitterNode.copy() as? SKEmitterNode
-        }
-        renderComponent.node.addChild(currentEmitterNode!)
-
-        // Request the appropriate "attack" animation for this `TaskBot`.
-        animationComponent.requestedAnimationState = .attack
-    }
-    
-    override func update(deltaTime seconds: TimeInterval) {
-        super.update(deltaTime: seconds)
-        
-        // Check if the `FlyingBot` has reached the end of its blast duration.
-        elapsedTime += seconds
-        if elapsedTime >= GameplayConfiguration.FlyingBot.blastDuration {
-            // Return to an agent-controlled state if the blast has completed.
-            stateMachine?.enter(TaskBotAgentControlledState.self)
-            return
-        }
-        else if elapsedTime < GameplayConfiguration.FlyingBot.blastEffectDuration {
-            // Perform either a "good" or "bad" blast, based on the `TaskBot`'s current state.
+        MainActor.assumeIsolated {
+            // Reset the "length of this blast" tracker when entering the "blast" state.
+            elapsedTime = 0.0
+            
+            /*
+                Add the "blast" node to the `FlyingBot`'s render node.
+                We make a copy of the template emitter node to ensure that the emitter
+                starts from a "zero" state with no existing particles.
+            */
             if entity.isGood {
-                performGoodBlast()
+                currentEmitterNode = templateGoodEmitterNode.copy() as? SKEmitterNode
             }
             else {
-                performBadBlast(withDeltaTime: seconds)
+                currentEmitterNode = templateBadEmitterNode.copy() as? SKEmitterNode
+            }
+            renderComponent.node.addChild(currentEmitterNode!)
+
+            // Request the appropriate "attack" animation for this `TaskBot`.
+            animationComponent.requestedAnimationState = .attack
+        }
+    }
+    
+    nonisolated override func update(deltaTime seconds: TimeInterval) {
+        super.update(deltaTime: seconds)
+        
+        MainActor.assumeIsolated {
+            // Check if the `FlyingBot` has reached the end of its blast duration.
+            elapsedTime += seconds
+            if elapsedTime >= GameplayConfiguration.FlyingBot.blastDuration {
+                // Return to an agent-controlled state if the blast has completed.
+                stateMachine?.enter(TaskBotAgentControlledState.self)
+                return
+            }
+            else if elapsedTime < GameplayConfiguration.FlyingBot.blastEffectDuration {
+                // Perform either a "good" or "bad" blast, based on the `TaskBot`'s current state.
+                if entity.isGood {
+                    performGoodBlast()
+                }
+                else {
+                    performBadBlast(withDeltaTime: seconds)
+                }
             }
         }
     }
     
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+    nonisolated override func isValidNextState(_ stateClass: AnyClass) -> Bool {
         switch stateClass {
             case is TaskBotAgentControlledState.Type, is TaskBotZappedState.Type:
                 return true
@@ -115,12 +126,14 @@ class FlyingBotBlastState: GKState {
         }
     }
     
-    override func willExit(to nextState: GKState) {
+    nonisolated override func willExit(to nextState: GKState) {
         super.willExit(to: nextState)
 
-        // Remove the blast effect emitter node from the `TaskBot` when leaving the blast state.
-        currentEmitterNode?.removeFromParent()
-        currentEmitterNode = nil
+        MainActor.assumeIsolated {
+            // Remove the blast effect emitter node from the `TaskBot` when leaving the blast state.
+            currentEmitterNode?.removeFromParent()
+            currentEmitterNode = nil
+        }
     }
     
     // MARK: Convenience
@@ -132,7 +145,7 @@ class FlyingBotBlastState: GKState {
         guard let entitySnapshot = level.entitySnapshotForEntity(entity: entity) else { return [] }
         
         // Convert the array of `EntityDistance`s to an array of `GKEntity`s where the distance to the entity is within the blast radius.
-        let entitiesInRange: [GKEntity] = entitySnapshot.entityDistances.flatMap {
+        let entitiesInRange: [GKEntity] = entitySnapshot.entityDistances.compactMap {
             if $0.distance <= GameplayConfiguration.FlyingBot.blastRadius {
                 return $0.target
             }
@@ -145,7 +158,7 @@ class FlyingBotBlastState: GKState {
     /// Performs a beneficial "curing" blast that converts any "bad" `TaskBot`s into "good" `TaskBot`s.
     func performGoodBlast() {
         // Filter and map the entities inside the blast radius to an array of `TaskBot`s.
-        let taskBotsInRange = entitiesInRange().flatMap { $0 as? TaskBot }
+        let taskBotsInRange = entitiesInRange().compactMap { $0 as? TaskBot }
         
         // Iterate through the `TaskBot`s in range.
         for taskBot in taskBotsInRange {

@@ -7,6 +7,7 @@
 */
 
 import SpriteKit
+import GameplayKit
 
 class HomeEndScene: BaseScene {
     // MARK: Properties
@@ -31,7 +32,7 @@ class HomeEndScene: BaseScene {
 
     // MARK: Deinitialization
     
-    deinit {
+    isolated deinit {
         // Deregister for scene loader notifications.
         for observer in sceneLoaderNotificationObservers {
             NotificationCenter.default.removeObserver(observer)
@@ -55,19 +56,41 @@ class HomeEndScene: BaseScene {
         registerForNotifications()
         centerCameraOnPoint(point: backgroundNode!.position)
         
-        // Begin loading the first level as soon as the view appears.
+        // Begin loading the first level as soon as the view appears (so it's faster when tapped).
         sceneManager.prepareScene(identifier: .level(1))
         
-        let levelLoader = sceneManager.sceneLoader(forSceneIdentifier: .level(1))
-        
-        // If the first level is not ready, hide the buttons until we are notified.
-        if !(levelLoader.stateMachine.currentState is SceneLoaderResourcesReadyState) {
-            proceedButton?.alpha = 0.0
-            proceedButton?.isUserInteractionEnabled = false
-            
-            screenRecorderButton?.alpha = 0.0
-            screenRecorderButton?.isUserInteractionEnabled = false
-        }
+        /*
+            [MODIFICADO EN LA MIGRACIÓN]
+
+            El diseño original de DemoBots OCULTA los botones (alpha 0) hasta que
+            el Level 1 termina de PRECARGAR sus recursos, y luego los revela con un
+            fade-in cuando llega `SceneLoaderDidCompleteNotification`.
+
+            Ese Level 1 usa On-Demand Resources (ODR: tags Level1/GroundBot/Blue).
+            En el simulador, sin ODR configurado, esa precarga no completa de forma
+            fiable → la notificación no llega → los botones se quedaban invisibles y
+            solo se veía el título.
+
+            Para que la Home sea siempre usable, dejamos los botones VISIBLES desde
+            el arranque. El nivel se cargará al pulsar "NEW GAME" (`transitionToScene`),
+            mostrando una escena de progreso si hace falta.
+
+            TODO: recuperar el comportamiento original de "precargar y revelar" cuando
+            se migre ODR a Apple-Hosted Background Assets (ver SceneLoaderDownloadingResourcesState).
+        */
+        proceedButton?.alpha = 1.0
+        proceedButton?.isUserInteractionEnabled = true
+
+        screenRecorderButton?.alpha = 1.0
+        screenRecorderButton?.isUserInteractionEnabled = true
+
+        // Código original (revelar tras la precarga), conservado como referencia:
+        // if !(levelLoader.stateMachine.currentState is SceneLoaderResourcesReadyState) {
+        //     proceedButton?.alpha = 0.0
+        //     proceedButton?.isUserInteractionEnabled = false
+        //     screenRecorderButton?.alpha = 0.0
+        //     screenRecorderButton?.isUserInteractionEnabled = false
+        // }
     }
     
     func registerForNotifications() {

@@ -9,9 +9,9 @@
 import SpriteKit
 
 func LoadSharedDemoBotsAssets() {
-    BeamNode.loadSharedAssets()
+    // `BeamNode` and `PlayerBot` don't define `loadSharedAssets()`; their shared
+    // setup (e.g. `PlayerBot.loadMiscellaneousAssets()`) happens in `loadResources`.
     FlyingBot.loadSharedAssets()
     GroundBot.loadSharedAssets()
-    PlayerBot.loadSharedAssets()
     TaskBot.loadSharedAssets()
 }

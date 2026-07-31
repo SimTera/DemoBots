@@ -25,7 +25,7 @@ enum AnimationState: String {
     Encapsulates all of the information needed to animate an entity and its shadow
     for a given animation state and facing direction.
 */
-struct Animation {
+nonisolated struct Animation {
 
     // MARK: Properties
     
@@ -86,7 +86,7 @@ class AnimationComponent: GKComponent {
     static let textureActionKey = "textureAction"
 
     /// The time to display each frame of a texture animation.
-    static let timePerFrame = TimeInterval(1.0 / 10.0)
+    nonisolated static let timePerFrame = TimeInterval(1.0 / 10.0)
     
     // MARK: Properties
     
@@ -112,6 +112,10 @@ class AnimationComponent: GKComponent {
     private var elapsedAnimationDuration: TimeInterval = 0.0
     
     // MARK: Initializers
+    @available(*, unavailable, message: "Use init(entity:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(entity:) instead.")
+    }
 
     init(textureSize: CGSize, animations: [AnimationState: [CompassDirection: Animation]]) {
         node = SKSpriteNode(texture: nil, size: textureSize)
@@ -119,7 +123,7 @@ class AnimationComponent: GKComponent {
         super.init()
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required nonisolated init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
@@ -234,22 +238,24 @@ class AnimationComponent: GKComponent {
     
     // MARK: GKComponent Life Cycle
     
-    override func update(deltaTime: TimeInterval) {
+    nonisolated override func update(deltaTime: TimeInterval) {
         super.update(deltaTime: deltaTime)
         
-        // If an animation has been requested, run the animation.
-        if let animationState = requestedAnimationState {
-            guard let orientationComponent = entity?.component(ofType: OrientationComponent.self) else { fatalError("An AnimationComponent's entity must have an OrientationComponent.") }
-            
-            runAnimationForAnimationState(animationState: animationState, compassDirection: orientationComponent.compassDirection, deltaTime: deltaTime)
-            requestedAnimationState = nil
+        MainActor.assumeIsolated {
+            // If an animation has been requested, run the animation.
+            if let animationState = requestedAnimationState {
+                guard let orientationComponent = entity?.component(ofType: OrientationComponent.self) else { fatalError("An AnimationComponent's entity must have an OrientationComponent.") }
+                
+                runAnimationForAnimationState(animationState: animationState, compassDirection: orientationComponent.compassDirection, deltaTime: deltaTime)
+                requestedAnimationState = nil
+            }
         }
     }
     
     // MARK: Texture loading utilities
 
     /// Returns the first texture in an atlas for a given `CompassDirection`.
-    class func firstTextureForOrientation(compassDirection: CompassDirection, inAtlas atlas: SKTextureAtlas, withImageIdentifier identifier: String) -> SKTexture {
+    nonisolated class func firstTextureForOrientation(compassDirection: CompassDirection, inAtlas atlas: SKTextureAtlas, withImageIdentifier identifier: String) -> SKTexture {
         // Filter for this facing direction, and sort the resulting texture names alphabetically.
         let textureNames = atlas.textureNames.filter {
             $0.hasPrefix("\(identifier)_\(compassDirection.rawValue)_")
@@ -260,7 +266,7 @@ class AnimationComponent: GKComponent {
     }
     
     /// Creates a texture action from all textures in an atlas.
-    class func actionForAllTexturesInAtlas(atlas: SKTextureAtlas) -> SKAction {
+    nonisolated class func actionForAllTexturesInAtlas(atlas: SKTextureAtlas) -> SKAction {
         // Sort the texture names alphabetically, and map them to an array of actual textures.
         let textures = atlas.textureNames.sorted().map {
             atlas.textureNamed($0)
@@ -277,7 +283,7 @@ class AnimationComponent: GKComponent {
     }
 
     /// Creates an `Animation` from textures in an atlas and actions loaded from file.
-    class func animationsFromAtlas(atlas: SKTextureAtlas, withImageIdentifier identifier: String, forAnimationState animationState: AnimationState, bodyActionName: String? = nil, shadowActionName: String? = nil, repeatTexturesForever: Bool = true, playBackwards: Bool = false) -> [CompassDirection: Animation] {
+    nonisolated class func animationsFromAtlas(atlas: SKTextureAtlas, withImageIdentifier identifier: String, forAnimationState animationState: AnimationState, bodyActionName: String? = nil, shadowActionName: String? = nil, repeatTexturesForever: Bool = true, playBackwards: Bool = false) -> [CompassDirection: Animation] {
         // Load a body action from an actions file if requested.
         let bodyAction: SKAction?
         if let name = bodyActionName {

@@ -21,6 +21,10 @@ class LevelSceneOverlayState: GKState {
     var overlaySceneFileName: String { fatalError("Unimplemented overlaySceneName") }
     
     // MARK: Initializers
+    @available(*, unavailable, message: "Use init(levelScene:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(levelScene:) instead.")
+    }
     
     init(levelScene: LevelScene) {
         self.levelScene = levelScene
@@ -40,46 +44,50 @@ class LevelSceneOverlayState: GKState {
 
     // MARK: GKState Life Cycle
 
-    override func didEnter(from previousState: GKState?) {
+    nonisolated override func didEnter(from previousState: GKState?) {
         super.didEnter(from: previousState)
         
-        #if os(iOS)
-        // Show the appropriate state for the recording buttons.
-        button(withIdentifier: .screenRecorderToggle)?.isSelected = levelScene.screenRecordingToggleEnabled
-        
-        if self is LevelSceneSuccessState || self is LevelSceneFailState {
-            if let viewRecordedContentButton = button(withIdentifier: .viewRecordedContent) {
-                viewRecordedContentButton.isHidden = true
-                
-                // Stop screen recording and update view recorded content button when complete.
-                levelScene.stopScreenRecording() {
-                    // Only show the view button if the recording is enabled and there's a valid `previewViewController` to present.
-                    let recordingEnabledAndPreviewAvailable = self.levelScene.screenRecordingToggleEnabled && self.levelScene.previewViewController != nil
-                    viewRecordedContentButton.isHidden = !recordingEnabledAndPreviewAvailable
+        MainActor.assumeIsolated {
+            #if os(iOS)
+            // Show the appropriate state for the recording buttons.
+            button(withIdentifier: .screenRecorderToggle)?.isSelected = levelScene.screenRecordingToggleEnabled
+            
+            if self is LevelSceneSuccessState || self is LevelSceneFailState {
+                if let viewRecordedContentButton = button(withIdentifier: .viewRecordedContent) {
+                    viewRecordedContentButton.isHidden = true
+                    
+                    // Stop screen recording and update view recorded content button when complete.
+                    levelScene.stopScreenRecording() {
+                        // Only show the view button if the recording is enabled and there's a valid `previewViewController` to present.
+                        let recordingEnabledAndPreviewAvailable = self.levelScene.screenRecordingToggleEnabled && self.levelScene.previewViewController != nil
+                        viewRecordedContentButton.isHidden = !recordingEnabledAndPreviewAvailable
+                    }
                 }
             }
+            #else
+            // Hide replay buttons on OSX and tvOS.
+            button(withIdentifier: .screenRecorderToggle)?.isHidden = true
+            button(withIdentifier: .viewRecordedContent)?.isHidden = true
+            #endif
+            
+            // Provide the levelScene with a reference to the overlay node.
+            levelScene.overlay = overlay
         }
-        #else
-        // Hide replay buttons on OSX and tvOS.
-        button(withIdentifier: .screenRecorderToggle)?.isHidden = true
-        button(withIdentifier: .viewRecordedContent)?.isHidden = true
-        #endif
-        
-        // Provide the levelScene with a reference to the overlay node.
-        levelScene.overlay = overlay
     }
 
-    override func willExit(to nextState: GKState) {
+    nonisolated override func willExit(to nextState: GKState) {
         super.willExit(to: nextState)
         
-        levelScene.overlay = nil
-        
-        #if os(iOS)
-        if self is LevelSceneSuccessState || self is LevelSceneFailState {
-            // After leaving this state, we should discard the recording.
-            levelScene.discardRecording()
+        MainActor.assumeIsolated {
+            levelScene.overlay = nil
+            
+            #if os(iOS)
+            if self is LevelSceneSuccessState || self is LevelSceneFailState {
+                // After leaving this state, we should discard the recording.
+                levelScene.discardRecording()
+            }
+            #endif
         }
-        #endif
     }
     
     // MARK: Convenience

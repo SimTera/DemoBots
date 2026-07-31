@@ -19,6 +19,11 @@ class ShadowComponent: GKComponent {
     */
     let node: SKSpriteNode
 
+    @available(*, unavailable, message: "Use init(texture:size:offset:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(texture:size:offset:) instead.")
+    }
+
     init(texture: SKTexture, size: CGSize, offset: CGPoint) {
         node = SKSpriteNode(texture: texture)
         node.alpha = 0.25
@@ -27,7 +32,7 @@ class ShadowComponent: GKComponent {
         super.init()
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required nonisolated init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     

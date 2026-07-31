@@ -36,74 +36,83 @@ class GroundBotAttackState: GKState {
     }
     
     // MARK: Initializers
+    @available(*, unavailable, message: "Use init(entity:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(entity:) instead.")
+    }
     
     required init(entity: GroundBot) {
         self.entity = entity
+        super.init()
     }
     
     // MARK: GKState Life Cycle
     
-    override func didEnter(from previousState: GKState?) {
+    nonisolated override func didEnter(from previousState: GKState?) {
         super.didEnter(from: previousState)
 
-        // Apply damage to any entities the `GroundBot` is already in contact with.
-        let contactedBodies = physicsComponent.physicsBody.allContactedBodies()
-        for contactedBody in contactedBodies {
-            guard let entity = contactedBody.node?.entity else { continue }
-            applyDamageToEntity(entity: entity)
+        MainActor.assumeIsolated {
+            // Apply damage to any entities the `GroundBot` is already in contact with.
+            let contactedBodies = physicsComponent.physicsBody.allContactedBodies()
+            for contactedBody in contactedBodies {
+                guard let entity = contactedBody.node?.entity else { continue }
+                applyDamageToEntity(entity: entity)
+            }
+
+            // `targetPosition` is a computed property. Declare a local version so we don't compute it multiple times.
+            let targetPosition = self.targetPosition
+            
+            // Calculate the distance and vector to the target.
+            let dx = targetPosition.x - entity.agent.position.x
+            let dy = targetPosition.y - entity.agent.position.y
+
+            lastDistanceToTarget = hypot(dx, dy)
+            let targetVector = SIMD2<Float>(x: Float(dx), y: Float(dy))
+
+            // `movementComponent` is a computed property. Declare a local version so we don't compute it multiple times.
+            let movementComponent = self.movementComponent
+
+            // Move the `GroundBot` towards the target at an increased speed.
+            movementComponent.movementSpeed *= GameplayConfiguration.GroundBot.movementSpeedMultiplierWhenAttacking
+            movementComponent.angularSpeed *= GameplayConfiguration.GroundBot.angularSpeedMultiplierWhenAttacking
+
+            movementComponent.nextTranslation = MovementKind(displacement: targetVector)
+            movementComponent.nextRotation = nil
         }
-
-        // `targetPosition` is a computed property. Declare a local version so we don't compute it multiple times.
-        let targetPosition = self.targetPosition
-        
-        // Calculate the distance and vector to the target.
-        let dx = targetPosition.x - entity.agent.position.x
-        let dy = targetPosition.y - entity.agent.position.y
-
-        lastDistanceToTarget = hypot(dx, dy)
-        let targetVector = float2(x: Float(dx), y: Float(dy))
-
-        // `movementComponent` is a computed property. Declare a local version so we don't compute it multiple times.
-        let movementComponent = self.movementComponent
-
-        // Move the `GroundBot` towards the target at an increased speed.
-        movementComponent.movementSpeed *= GameplayConfiguration.GroundBot.movementSpeedMultiplierWhenAttacking
-        movementComponent.angularSpeed *= GameplayConfiguration.GroundBot.angularSpeedMultiplierWhenAttacking
-
-        movementComponent.nextTranslation = MovementKind(displacement: targetVector)
-        movementComponent.nextRotation = nil
     }
     
-    override func update(deltaTime seconds: TimeInterval) {
+    nonisolated override func update(deltaTime seconds: TimeInterval) {
         super.update(deltaTime: seconds)
         
-        // `targetPosition` is a computed property. Declare a local version so we don't compute it multiple times.
-        let targetPosition = self.targetPosition
-        
-        // Leave the attack state if the `GroundBot` is close to its target.
-        let dx = targetPosition.x - entity.agent.position.x
-        let dy = targetPosition.y - entity.agent.position.y
-        
-        let currentDistanceToTarget = hypot(dx, dy)
-        if currentDistanceToTarget < GameplayConfiguration.GroundBot.attackEndProximity {
-            stateMachine?.enter(TaskBotAgentControlledState.self)
-            return
-        }
+        MainActor.assumeIsolated {
+            // `targetPosition` is a computed property. Declare a local version so we don't compute it multiple times.
+            let targetPosition = self.targetPosition
+            
+            // Leave the attack state if the `GroundBot` is close to its target.
+            let dx = targetPosition.x - entity.agent.position.x
+            let dy = targetPosition.y - entity.agent.position.y
+            
+            let currentDistanceToTarget = hypot(dx, dy)
+            if currentDistanceToTarget < GameplayConfiguration.GroundBot.attackEndProximity {
+                stateMachine?.enter(TaskBotAgentControlledState.self)
+                return
+            }
 
-        /*
-            Leave the attack state if the `GroundBot` has moved further away from
-            its target because it has been knocked off course.
-        */
-        if currentDistanceToTarget > lastDistanceToTarget {
-            stateMachine?.enter(TaskBotAgentControlledState.self)
-            return
+            /*
+                Leave the attack state if the `GroundBot` has moved further away from
+                its target because it has been knocked off course.
+            */
+            if currentDistanceToTarget > lastDistanceToTarget {
+                stateMachine?.enter(TaskBotAgentControlledState.self)
+                return
+            }
+            
+            // Otherwise, remember the current distance for the next time we update this state.
+            lastDistanceToTarget = currentDistanceToTarget
         }
-        
-        // Otherwise, remember the current distance for the next time we update this state.
-        lastDistanceToTarget = currentDistanceToTarget
     }
     
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+    nonisolated override func isValidNextState(_ stateClass: AnyClass) -> Bool {
         switch stateClass {
             case is TaskBotAgentControlledState.Type, is TaskBotZappedState.Type:
                 return true
@@ -113,17 +122,19 @@ class GroundBotAttackState: GKState {
         }
     }
     
-    override func willExit(to nextState: GKState) {
+    nonisolated override func willExit(to nextState: GKState) {
         super.willExit(to: nextState)
 
-        // `movementComponent` is a computed property. Declare a local version so we don't compute it multiple times.
-        let movementComponent = self.movementComponent
-        
-        // Stop the `GroundBot`'s movement and restore its standard movement speed.
-        movementComponent.nextRotation = nil
-        movementComponent.nextTranslation = nil
-        movementComponent.movementSpeed /= GameplayConfiguration.GroundBot.movementSpeedMultiplierWhenAttacking
-        movementComponent.angularSpeed /= GameplayConfiguration.GroundBot.angularSpeedMultiplierWhenAttacking
+        MainActor.assumeIsolated {
+            // `movementComponent` is a computed property. Declare a local version so we don't compute it multiple times.
+            let movementComponent = self.movementComponent
+            
+            // Stop the `GroundBot`'s movement and restore its standard movement speed.
+            movementComponent.nextRotation = nil
+            movementComponent.nextTranslation = nil
+            movementComponent.movementSpeed /= GameplayConfiguration.GroundBot.movementSpeedMultiplierWhenAttacking
+            movementComponent.angularSpeed /= GameplayConfiguration.GroundBot.angularSpeedMultiplierWhenAttacking
+        }
     }
     
     // MARK: Convenience

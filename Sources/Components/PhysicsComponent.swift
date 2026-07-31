@@ -16,6 +16,11 @@ class PhysicsComponent: GKComponent {
     
     // MARK: Initializers
     
+    @available(*, unavailable, message: "Use init(physicsBody:colliderType:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(physicsBody:colliderType:) instead.")
+    }
+
     init(physicsBody: SKPhysicsBody, colliderType: ColliderType) {
         self.physicsBody = physicsBody
         self.physicsBody.categoryBitMask = colliderType.categoryMask
@@ -24,7 +29,7 @@ class PhysicsComponent: GKComponent {
         super.init()
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required nonisolated init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }

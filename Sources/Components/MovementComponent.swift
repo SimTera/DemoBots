@@ -79,77 +79,79 @@ class MovementComponent: GKComponent {
     
     // MARK: Initializers
     
-    override init() {
+    override nonisolated init() {
         movementSpeed = GameplayConfiguration.PlayerBot.movementSpeed
         angularSpeed = GameplayConfiguration.PlayerBot.angularSpeed
         super.init()
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required nonisolated init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
     // MARK: GKComponent Life Cycle
     
-    override func update(deltaTime: TimeInterval) {
+    nonisolated override func update(deltaTime: TimeInterval) {
         super.update(deltaTime: deltaTime)
 
-        // Declare local versions of computed properties so we don't compute them multiple times.
-        let node = renderComponent.node
-        let orientationComponent = self.orientationComponent
+        MainActor.assumeIsolated {
+            // Declare local versions of computed properties so we don't compute them multiple times.
+            let node = renderComponent.node
+            let orientationComponent = self.orientationComponent
 
-        var animationState: AnimationState?
-        
-        /*
-            Check if strafing behavior is enabled. Strafing allows the entity to remain
-            fixed in the direction of the target while the beam is locked.
-        */
-        if allowsStrafing, let targetVector = vectorForBeamTowardsCurrentTarget() {
-            // Overwrite the `nextRotation` to face the target.
-            nextRotation = MovementKind(displacement: targetVector)
-        }
-        
-        if let movement = nextRotation, let newRotation = angleForRotatingNode(node: node, withRotationalMovement: movement, duration: deltaTime)  {
-            // Update the node's `zRotation` with new rotation information.
-            orientationComponent.zRotation = newRotation
-            animationState = .idle
-        }
-        else {
-            // Clear the rotation if a valid angle could not be created.
-            nextRotation = nil
-        }
-        
-        // Update the node's `position` with new displacement information.
-        if let movement = nextTranslation, let newPosition = pointForTranslatingNode(node: node, withTranslationalMovement: movement, duration: deltaTime) {
-            node.position = newPosition
-            
-            // If no explicit rotation is being provided, orient in the direction of movement.
-            if nextRotation == nil {
-                orientationComponent.zRotation = CGFloat(atan2(movement.displacement.y, movement.displacement.x))
-            }
-            
+            var animationState: AnimationState?
+
             /*
-                Always request a walking animation, but distinguish between walking
-                forward and backwards based on node's `zRotation`.
+                Check if strafing behavior is enabled. Strafing allows the entity to remain
+                fixed in the direction of the target while the beam is locked.
             */
-            animationState = animationStateForDestination(node: node, destination: newPosition)
-        }
-        else {
-            // Clear the translation if a valid point could not be created.
-            nextTranslation = nil
-        }
-        
-        /* 
-            If an animation is required, and the `AnimationComponent` is running,
-            and the requested animation can be overwritten, update the `AnimationComponent`'s
-            requested animation state.
-        */
-        if let animationState = animationState {
-            // `animationComponent` is a computed property. Declare a local version so we don't compute it multiple times.
-            let animationComponent = self.animationComponent
+            if allowsStrafing, let targetVector = vectorForBeamTowardsCurrentTarget() {
+                // Overwrite the `nextRotation` to face the target.
+                nextRotation = MovementKind(displacement: targetVector)
+            }
 
-            if animationStateCanBeOverwritten(animationState: animationComponent.currentAnimation?.animationState) && animationStateCanBeOverwritten(animationState: animationComponent.requestedAnimationState) {
-                animationComponent.requestedAnimationState = animationState
+            if let movement = nextRotation, let newRotation = angleForRotatingNode(node: node, withRotationalMovement: movement, duration: deltaTime)  {
+                // Update the node's `zRotation` with new rotation information.
+                orientationComponent.zRotation = newRotation
+                animationState = .idle
+            }
+            else {
+                // Clear the rotation if a valid angle could not be created.
+                nextRotation = nil
+            }
+
+            // Update the node's `position` with new displacement information.
+            if let movement = nextTranslation, let newPosition = pointForTranslatingNode(node: node, withTranslationalMovement: movement, duration: deltaTime) {
+                node.position = newPosition
+
+                // If no explicit rotation is being provided, orient in the direction of movement.
+                if nextRotation == nil {
+                    orientationComponent.zRotation = CGFloat(atan2(movement.displacement.y, movement.displacement.x))
+                }
+
+                /*
+                    Always request a walking animation, but distinguish between walking
+                    forward and backwards based on node's `zRotation`.
+                */
+                animationState = animationStateForDestination(node: node, destination: newPosition)
+            }
+            else {
+                // Clear the translation if a valid point could not be created.
+                nextTranslation = nil
+            }
+
+            /*
+                If an animation is required, and the `AnimationComponent` is running,
+                and the requested animation can be overwritten, update the `AnimationComponent`'s
+                requested animation state.
+            */
+            if let animationState = animationState {
+                // `animationComponent` is a computed property. Declare a local version so we don't compute it multiple times.
+                let animationComponent = self.animationComponent
+
+                if animationStateCanBeOverwritten(animationState: animationComponent.currentAnimation?.animationState) && animationStateCanBeOverwritten(animationState: animationComponent.requestedAnimationState) {
+                    animationComponent.requestedAnimationState = animationState
+                }
             }
         }
     }
@@ -165,7 +167,7 @@ class MovementComponent: GKComponent {
         let playerBotPosition = beamComponent.playerBotAntenna.position
         
         // Return a vector translating from the `taskBotPosition` to the `playerBotPosition`.
-        return float2(x: Float(taskBotPosition.x - playerBotPosition.x), y: Float(taskBotPosition.y - playerBotPosition.y))
+        return SIMD2<Float>(x: Float(taskBotPosition.x - playerBotPosition.x), y: Float(taskBotPosition.y - playerBotPosition.y))
     }
     
     /// Produces the destination point for the node, based on the provided translation.

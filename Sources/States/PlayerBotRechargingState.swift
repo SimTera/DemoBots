@@ -30,50 +30,59 @@ class PlayerBotRechargingState: GKState {
     }
     
     // MARK: Initializers
+    @available(*, unavailable, message: "Use init(entity:) instead.")
+    override nonisolated init() {
+        fatalError("init() must not be used. Use init(entity:) instead.")
+    }
     
     required init(entity: PlayerBot) {
         self.entity = entity
+        super.init()
     }
     
     // MARK: GKState life cycle
     
-    override func didEnter(from previousState: GKState?) {
+    nonisolated override func didEnter(from previousState: GKState?) {
         super.didEnter(from: previousState)
         
-        // Reset the recharge duration when entering this state.
-        elapsedTime = 0.0
-        
-        // Request the "inactive" animation for the `PlayerBot`.
-        animationComponent.requestedAnimationState = .inactive
-    }
-    
-    override func update(deltaTime seconds: TimeInterval) {
-        super.update(deltaTime: seconds)
-        
-        // Update the elapsed recharge duration.
-        elapsedTime += seconds
-
-        /**
-            There is a delay from when the `PlayerBot` enters this state to when it begins to recharge.
-            Do nothing if the `PlayerBot` hasn't been in this state long enough.
-        */
-        if elapsedTime < GameplayConfiguration.PlayerBot.rechargeDelayWhenInactive { return }
-
-        // `chargeComponent` is a computed property. Declare a local version so we don't compute it multiple times.
-        let chargeComponent = self.chargeComponent
-
-        // Add charge to the `PlayerBot`.
-        let amountToRecharge = GameplayConfiguration.PlayerBot.rechargeAmountPerSecond * seconds
-        chargeComponent.addCharge(chargeToAdd: amountToRecharge)
-        
-        // If the `PlayerBot` is fully charged it can become player controlled again.
-        if chargeComponent.isFullyCharged {
-            entity.isPoweredDown = false
-            stateMachine?.enter(PlayerBotPlayerControlledState.self)
+        MainActor.assumeIsolated {
+            // Reset the recharge duration when entering this state.
+            elapsedTime = 0.0
+            
+            // Request the "inactive" animation for the `PlayerBot`.
+            animationComponent.requestedAnimationState = .inactive
         }
     }
     
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+    nonisolated override func update(deltaTime seconds: TimeInterval) {
+        super.update(deltaTime: seconds)
+        
+        MainActor.assumeIsolated {
+            // Update the elapsed recharge duration.
+            elapsedTime += seconds
+
+            /**
+                There is a delay from when the `PlayerBot` enters this state to when it begins to recharge.
+                Do nothing if the `PlayerBot` hasn't been in this state long enough.
+            */
+            if elapsedTime < GameplayConfiguration.PlayerBot.rechargeDelayWhenInactive { return }
+
+            // `chargeComponent` is a computed property. Declare a local version so we don't compute it multiple times.
+            let chargeComponent = self.chargeComponent
+
+            // Add charge to the `PlayerBot`.
+            let amountToRecharge = GameplayConfiguration.PlayerBot.rechargeAmountPerSecond * seconds
+            chargeComponent.addCharge(chargeToAdd: amountToRecharge)
+            
+            // If the `PlayerBot` is fully charged it can become player controlled again.
+            if chargeComponent.isFullyCharged {
+                entity.isPoweredDown = false
+                stateMachine?.enter(PlayerBotPlayerControlledState.self)
+            }
+        }
+    }
+    
+    nonisolated override func isValidNextState(_ stateClass: AnyClass) -> Bool {
         return stateClass is PlayerBotPlayerControlledState.Type
     }
 }

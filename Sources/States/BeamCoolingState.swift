@@ -9,7 +9,7 @@
 import SpriteKit
 import GameplayKit
 
-class BeamCoolingState: GKState {
+nonisolated final class BeamCoolingState: GKState, @unchecked Sendable {
     // MARK: Properties
     
     unowned var beamComponent: BeamComponent
@@ -37,8 +37,10 @@ class BeamCoolingState: GKState {
         elapsedTime += seconds
         
         // If the beam has spent long enough cooling down, enter `BeamIdleState`.
-        if elapsedTime >= GameplayConfiguration.Beam.coolDownDuration {
-            stateMachine?.enter(BeamIdleState.self)
+        MainActor.assumeIsolated {
+            if elapsedTime >= GameplayConfiguration.Beam.coolDownDuration {
+                stateMachine?.enter(BeamIdleState.self)
+            }
         }
     }
     
@@ -54,9 +56,14 @@ class BeamCoolingState: GKState {
     
     override func willExit(to nextState: GKState) {
         super.willExit(to: nextState)
+        // SpriteKit garantiza que `nextState` viene del game loop (MainActor), --NO ESTOY MUY SEGURO DE ESTO--
+        // así que es seguro cruzar la referencia.
+        nonisolated(unsafe) let next = nextState
         
-        if let playerBot = beamComponent.entity as? PlayerBot {
-            beamComponent.beamNode.update(withBeamState: nextState, source: playerBot)
+        MainActor.assumeIsolated {
+            if let playerBot = beamComponent.entity as? PlayerBot {
+                beamComponent.beamNode.update(withBeamState: next, source: playerBot) //aqui ponemos el next creado antes
+            }
         }
     }
 }
