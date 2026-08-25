@@ -34,6 +34,12 @@ enum CompassDirection: Int, Sendable {
     
     /// Creates a new `FacingDirection` for a given `zRotation` in radians.
     init(zRotation: CGFloat) { // change let twoPi = M_PI * 2 is deprecate
+        // Protección contra valores indefinidos (NaN o Infinite)
+        guard !zRotation.isNaN && !zRotation.isInfinite else {
+            self = .east
+            return
+        }
+        
         let twoPi = Double.pi * 2
         
         // Normalize the node's rotation.

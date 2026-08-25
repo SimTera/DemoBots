@@ -44,6 +44,9 @@ struct MovementKind {
 
 class MovementComponent: GKComponent {
     // MARK: Properties
+    
+    /// Umbral mínimo para descartar ruido numérico en cálculos de vectores.
+    private static let movementThreshold: Float = 0.0001
 
     /// Value used to calculate the translational movement of the entity.
     var nextTranslation: MovementKind?
@@ -172,8 +175,8 @@ class MovementComponent: GKComponent {
     
     /// Produces the destination point for the node, based on the provided translation.
     func pointForTranslatingNode(node: SKNode, withTranslationalMovement translation: MovementKind, duration: TimeInterval) -> CGPoint? {
-        // No translation if the vector is a zeroVector.
-        guard translation.displacement != SIMD2<Float>() else { return nil }
+        // No translation if the displacement is zero or negligible noise.
+        guard length(translation.displacement) > Self.movementThreshold else { return nil }
         
         var displacement = translation.displacement
         /*
@@ -182,7 +185,8 @@ class MovementComponent: GKComponent {
         */
         if translation.isRelativeToOrientation {
             // Ensure the relative displacement component is non-zero.
-            guard displacement.x != 0 else { return nil }
+            //guard displacement.x != 0 else { return nil }
+            guard abs(displacement.x) > Self.movementThreshold else { return nil }
             displacement = calculateAbsoluteDisplacementFromRelativeDisplacement(relativeDisplacement: displacement)
         }
         
@@ -225,7 +229,8 @@ class MovementComponent: GKComponent {
         if rotation.isRelativeToOrientation {
             // Clockwise: (dx: 0.0, dy: -1.0), CounterClockwise: (dx: 0.0, dy: 1.0)
             let rotationComponent = rotation.displacement.y
-            guard rotationComponent != 0 else { return nil }
+            //guard rotationComponent != 0 else { return nil }
+            guard abs(rotationComponent) > Self.movementThreshold else { return nil }
             
             /*
                 Add a fixed amount to the node's existing `zRotation` based

@@ -47,22 +47,33 @@ class FlyingBotBlastState: GKState {
     // es un init propio con parámetros. Solo el override init() bloqueado tiene que ser nonisolated (para casar con la base). Por lo tanto no es necesario el overraid.
     required init(entity: TaskBot) {
         self.entity = entity
-
-            // Load and configure the "good" and "bad" template emitter nodes.
-            templateGoodEmitterNode = SKEmitterNode(fileNamed: "FlyingBotGoodAttackParticleEmitter")!
-            templateBadEmitterNode = SKEmitterNode(fileNamed: "FlyingBotBadAttackParticleEmitter")!
-            
-            /*
-                Use a zPosition of -25 (relative to the entity's render node) to make sure
-                that the blast emitter nodes' particles are behind this `FlyingBot`'s body texture.
-            */
-            templateGoodEmitterNode.zPosition = -25.0
-            templateBadEmitterNode.zPosition = -25.0
-
-            // Offset the emitter nodes to place them behind the correct part of the `FlyingBot`.
-            templateGoodEmitterNode.position = GameplayConfiguration.FlyingBot.blastEmitterOffset
-            templateBadEmitterNode.position = GameplayConfiguration.FlyingBot.blastEmitterOffset
-
+        
+        // Load and configure the "good" and "bad" template emitter nodes.
+//            templateGoodEmitterNode = SKEmitterNode(fileNamed: "FlyingBotGoodAttackParticleEmitter")!
+//            templateBadEmitterNode = SKEmitterNode(fileNamed: "FlyingBotBadAttackParticleEmitter")!
+        
+        // Carga segura con fallback para evitar el crash
+        let goodEmitter = SKEmitterNode(fileNamed: "FlyingBotGoodAttackParticleEmitter")
+        ?? SKEmitterNode(fileNamed: "FlyingBotGoodAttackParticleEmitter.sks")
+        ?? SKEmitterNode()
+        
+        let badEmitter = SKEmitterNode(fileNamed: "FlyingBotBadAttackParticleEmitter")
+        ?? SKEmitterNode(fileNamed: "FlyingBotBadAttackParticleEmitter.sks")
+        ?? SKEmitterNode()
+        templateGoodEmitterNode = goodEmitter
+        templateBadEmitterNode = badEmitter
+        
+        /*
+         Use a zPosition of -25 (relative to the entity's render node) to make sure
+         that the blast emitter nodes' particles are behind this `FlyingBot`'s body texture.
+         */
+        templateGoodEmitterNode.zPosition = -25.0
+        templateBadEmitterNode.zPosition = -25.0
+        
+        // Offset the emitter nodes to place them behind the correct part of the `FlyingBot`.
+        templateGoodEmitterNode.position = GameplayConfiguration.FlyingBot.blastEmitterOffset
+        templateBadEmitterNode.position = GameplayConfiguration.FlyingBot.blastEmitterOffset
+        
         super.init()
     }
     
@@ -86,7 +97,10 @@ class FlyingBotBlastState: GKState {
             else {
                 currentEmitterNode = templateBadEmitterNode.copy() as? SKEmitterNode
             }
-            renderComponent.node.addChild(currentEmitterNode!)
+//            renderComponent.node.addChild(currentEmitterNode!)
+            if let emitter = currentEmitterNode {
+                renderComponent.node.addChild(emitter)
+            }
 
             // Request the appropriate "attack" animation for this `TaskBot`.
             animationComponent.requestedAnimationState = .attack
@@ -199,5 +213,3 @@ class FlyingBotBlastState: GKState {
         }
     }
 }
-
-

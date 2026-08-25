@@ -30,7 +30,7 @@ class ThumbStickNode: SKSpriteNode {
     weak var delegate: ThumbStickNodeDelegate?
     
     /// The center point of this `ThumbStickNode`.
-    let center: CGPoint
+    let center: CGPoint = .zero // he añadido el '= .zero'
     
     /// The distance that `touchPad` can move from the `touchPadAnchorPoint`.
     let trackingDistance: CGFloat
@@ -48,18 +48,25 @@ class ThumbStickNode: SKSpriteNode {
     // MARK: Initialization
     
     init(size: CGSize) {
-        trackingDistance = size.width / 2
+//        trackingDistance = size.width / 2
+//        
+//        let touchPadLength = size.width / 2.2
+//        center = CGPoint(x: size.width / 2 - touchPadLength, y: size.height / 2 - touchPadLength)
+        let effectiveWidth = max(size.width, 100.0)
+        let effectiveHeight = max(size.height, 100.0)
+        let safeSize = CGSize(width: effectiveWidth, height: effectiveHeight)
         
-        let touchPadLength = size.width / 2.2
-        center = CGPoint(x: size.width / 2 - touchPadLength, y: size.height / 2 - touchPadLength)
+        self.trackingDistance = effectiveWidth / 2.0
         
+        let touchPadLength = effectiveWidth / 2.2
         let touchPadSize = CGSize(width: touchPadLength, height: touchPadLength)
         let touchPadTexture = SKTexture(imageNamed: "ControlPad")
         
         // `touchPad` is the inner touch pad that follows the user's thumb.
         touchPad = SKSpriteNode(texture: touchPadTexture, color: UIColor.clear, size: touchPadSize)
+        touchPad.position = .zero
         
-        super.init(texture: touchPadTexture, color: UIColor.clear, size: size)
+        super.init(texture: touchPadTexture, color: UIColor.clear, size: safeSize)
 
         alpha = normalAlpha
         
@@ -88,6 +95,8 @@ class ThumbStickNode: SKSpriteNode {
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesMoved(touches, with: event)
         
+        guard trackingDistance > 0 else { return }
+        
         // For each touch, calculate the movement of the touchPad.
         for touch in touches {
             let touchLocation = touch.location(in: self)
@@ -95,6 +104,7 @@ class ThumbStickNode: SKSpriteNode {
             var dx = touchLocation.x - center.x
             var dy = touchLocation.y - center.y
             
+            print("🕹️ Location: \(touchLocation) | dx: \(dx), dy: \(dy) | trackingDist: \(trackingDistance)")
             // Calculate the distance from the `touchPadAnchorPoint` to the current location.
             let distance = hypot(dx, dy)
             
@@ -111,9 +121,17 @@ class ThumbStickNode: SKSpriteNode {
             // Position the touchPad to match the touch's movement.
             touchPad.position = CGPoint(x: center.x + dx, y: center.y + dy)
             
+            let rawDx = Float(dx / trackingDistance)
+            let rawDy = Float(dy / trackingDistance)
+            
             // Normalize the displacements between [-1.0, 1.0].
-            let normalizedDx = Float(dx / trackingDistance)
-            let normalizedDy = Float(dy / trackingDistance)
+//            let normalizedDx = Float(dx / trackingDistance)
+//            let normalizedDy = Float(dy / trackingDistance)
+            // Proteccion explicita contra NaN
+            let normalizedDx = (rawDx.isNaN || rawDx.isInfinite) ? 0.0 : rawDx
+            let normalizedDy = (rawDy.isNaN || rawDy.isInfinite) ? 0.0 : rawDy
+            
+            print("📤 Emitiendo desde touchesMoved -> Dx: \(normalizedDx), Dy: \(normalizedDy)")
             delegate?.thumbStickNode(thumbStickNode: self, didUpdateXValue: normalizedDx, yValue: normalizedDy)
         }
     }
@@ -134,6 +152,7 @@ class ThumbStickNode: SKSpriteNode {
     
     /// When touches end, reset the `touchPad` to the center of the control.
     func resetTouchPad() {
+        print("🛑 resetTouchPad llamado (soltado o reseteado)")
         alpha = normalAlpha
         
         let restoreToCenter = SKAction.move(to: CGPoint.zero, duration: 0.2)

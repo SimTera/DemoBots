@@ -87,6 +87,8 @@ class TouchControlInputNode: SKSpriteNode, ThumbStickNodeDelegate, ControlInputS
     func thumbStickNode(thumbStickNode: ThumbStickNode, didUpdateXValue xValue: Float, yValue: Float) {
         // Determine which control this update is relevant to by comparing it to the references.
         if thumbStickNode === leftThumbStickNode {
+            print("🚀 ENVIANDO MOVIMIENTO -> X: \(xValue), Y: \(yValue)")
+            
             let displacement = SIMD2<Float>(x: xValue, y: yValue)
             delegate?.controlInputSource(self, didUpdateDisplacement: displacement)
         }
@@ -105,6 +107,7 @@ class TouchControlInputNode: SKSpriteNode, ThumbStickNodeDelegate, ControlInputS
     
     func thumbStickNode(thumbStickNode: ThumbStickNode, isPressed: Bool) {
         if thumbStickNode === rightThumbStickNode {
+            
             if isPressed {
                 delegate?.controlInputSourceDidBeginAttacking(self)
             }
@@ -127,6 +130,8 @@ class TouchControlInputNode: SKSpriteNode, ThumbStickNodeDelegate, ControlInputS
         
         for touch in touches {
             let touchPoint = touch.location(in: self)
+            
+            print("Touch en X: \(touchPoint.x), centerDivider: \(centerDividerWidth)")
             
             /*
                 Ignore touches if the thumb stick controls are hidden, or if
@@ -161,11 +166,23 @@ class TouchControlInputNode: SKSpriteNode, ThumbStickNodeDelegate, ControlInputS
             over the the `rightThumbStickNode`s zone or vice versa,
             while ensuring it is handled by the correct thumb stick.
         */
-        let movedLeftTouches = touches.intersection(leftControlTouches)
-        leftThumbStickNode.touchesMoved(movedLeftTouches, with: event)
+//        let movedLeftTouches = touches.intersection(leftControlTouches)
+//        leftThumbStickNode.touchesMoved(movedLeftTouches, with: event)
+//        
+//        let movedRightTouches = touches.intersection(rightControlTouches)
+//        rightThumbStickNode.touchesMoved(movedRightTouches, with: event)
+        for touch in touches {
+            let touchPoint = touch.location(in: self)
+            
+            // Si el toque está registrado en el control izquierdo o está en la mitad izquierda
+            if leftControlTouches.contains(touch) || touchPoint.x < 0 {
+                leftThumbStickNode.touchesMoved([touch], with: event)
+            }
+            else if rightControlTouches.contains(touch) || touchPoint.x > 0 {
+                rightThumbStickNode.touchesMoved([touch], with: event)
+            }
+        }
         
-        let movedRightTouches = touches.intersection(rightControlTouches)
-        rightThumbStickNode.touchesMoved(movedRightTouches, with: event)
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
